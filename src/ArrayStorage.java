@@ -4,7 +4,7 @@ import java.util.Arrays;
  * Array based storage for Resumes
  */
 public class ArrayStorage {
-    Resume[] storage = new Resume[10000];
+    private Resume[] storage = new Resume[10000];
 
     void clear() {
         Arrays.fill(storage, null);
@@ -27,7 +27,7 @@ public class ArrayStorage {
                 }
             }
         } catch (NullPointerException e) {
-            System.out.println("Резюме не найдено.");
+            System.out.println("Резюме uuid:"+ uuid + " - не найдено.");
         }
         return null;
     }
