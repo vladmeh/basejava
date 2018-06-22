@@ -20,16 +20,13 @@ public class ArrayStorage {
     }
 
     Resume get(String uuid) {
+        Resume resume = new Resume();
         try {
-            for (Resume resume : storage) {
-                if (resume.uuid.equals(uuid)){
-                    return resume;
-                }
-            }
+            resume = Arrays.stream(storage).filter(r -> r.uuid.equals(uuid)).findFirst().get();
         } catch (NullPointerException e) {
             System.out.println("Резюме uuid:"+ uuid + " - не найдено.");
         }
-        return null;
+        return resume;
     }
 
     void delete(String uuid) {
