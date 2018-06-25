@@ -10,35 +10,51 @@ import java.util.Arrays;
 public class ArrayStorage {
     private Resume[] storage = new Resume[10000];
 
+    private int size = 0;
+
     public void clear() {
         Arrays.fill(storage, null);
+        size = 0;
+    }
+
+    public void update(Resume resume) {
+        Integer k = getKey(resume.getUuid());
+        if (k != null) {
+            storage[k] = resume;
+        } else {
+            System.out.println("Резюме uuid:" + resume.getUuid() + " - не найдено.");
+        }
     }
 
     public void save(Resume resume) {
-        for (int i = 0; i < size(); i++) {
-            if (storage[i] == null) {
-                storage[i] = resume;
-                break;
-            }
+        String uuid = resume.getUuid();
+
+        if (getKey(uuid) == null) {
+            storage[size] = resume;
+            size++;
+        } else {
+            System.out.println("Резюме uuid:" + uuid + " - уже существует.");
         }
     }
 
     public Resume get(String uuid) {
-        Resume resume = new Resume();
-        try {
-            resume = Arrays.stream(storage).filter(r -> r.getUuid().equals(uuid)).findFirst().get();
-        } catch (NullPointerException e) {
-            System.out.println("Резюме uuid:"+ uuid + " - не найдено.");
+        Integer k = getKey(uuid);
+        if (k != null) {
+            return storage[k];
+        } else {
+            System.out.println("Резюме uuid:" + uuid + " - не найдено.");
         }
-        return resume;
+        return null;
     }
 
     public void delete(String uuid) {
-        for (int i = 0; i < size(); i++) {
-            if (storage[i].getUuid().equals(uuid)){
-                storage[i] = null;
-                break;
-            }
+        Integer k = getKey(uuid);
+        if (k != null) {
+            storage[k] = storage[size - 1];
+            storage[size - 1] = null;
+            size--;
+        } else {
+            System.out.println("Резюме uuid:" + uuid + " - не найдено.");
         }
     }
 
@@ -46,12 +62,19 @@ public class ArrayStorage {
      * @return array, contains only Resumes in storage (without null)
      */
     public Resume[] getAll() {
-        return Arrays.stream(storage)
-                .filter(s -> (s != null))
-                .toArray(Resume[]::new);
+        return Arrays.copyOf(storage, size);
     }
 
     public int size() {
-        return storage.length;
+        return size;
+    }
+
+    private Integer getKey(String uuid) {
+        for (int i = 0; i < size; i++) {
+            if (storage[i].getUuid().equals(uuid)) {
+                return i;
+            }
+        }
+        return null;
     }
 }
