@@ -1,3 +1,7 @@
+package com.vladmeh.webapp.storage;
+
+import com.vladmeh.webapp.model.Resume;
+
 import java.util.Arrays;
 
 /**
@@ -6,11 +10,11 @@ import java.util.Arrays;
 public class ArrayStorage {
     private Resume[] storage = new Resume[10000];
 
-    void clear() {
+    public void clear() {
         Arrays.fill(storage, null);
     }
 
-    void save(Resume resume) {
+    public void save(Resume resume) {
         for (int i = 0; i < size(); i++) {
             if (storage[i] == null) {
                 storage[i] = resume;
@@ -19,19 +23,19 @@ public class ArrayStorage {
         }
     }
 
-    Resume get(String uuid) {
+    public Resume get(String uuid) {
         Resume resume = new Resume();
         try {
-            resume = Arrays.stream(storage).filter(r -> r.uuid.equals(uuid)).findFirst().get();
+            resume = Arrays.stream(storage).filter(r -> r.getUuid().equals(uuid)).findFirst().get();
         } catch (NullPointerException e) {
             System.out.println("Резюме uuid:"+ uuid + " - не найдено.");
         }
         return resume;
     }
 
-    void delete(String uuid) {
+    public void delete(String uuid) {
         for (int i = 0; i < size(); i++) {
-            if (storage[i].uuid.equals(uuid)){
+            if (storage[i].getUuid().equals(uuid)){
                 storage[i] = null;
                 break;
             }
@@ -41,13 +45,13 @@ public class ArrayStorage {
     /**
      * @return array, contains only Resumes in storage (without null)
      */
-    Resume[] getAll() {
+    public Resume[] getAll() {
         return Arrays.stream(storage)
                 .filter(s -> (s != null))
                 .toArray(Resume[]::new);
     }
 
-    int size() {
+    public int size() {
         return storage.length;
     }
 }
