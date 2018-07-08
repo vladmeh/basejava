@@ -1,0 +1,77 @@
+Index: src/ru/javawebinar/basejava/model/Resume.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/Resume.java	(revision ef8100a35703b43a0b58a9f7e2b520f1e04e06d3)
++++ src/ru/javawebinar/basejava/model/Resume.java	(date 1531086910454)
+@@ -20,4 +20,19 @@
+     public String toString() {
+         return uuid;
+     }
++
++    @Override
++    public boolean equals(Object o) {
++        if (this == o) return true;
++        if (o == null || getClass() != o.getClass()) return false;
++
++        Resume resume = (Resume) o;
++
++        return uuid.equals(resume.uuid);
++    }
++
++    @Override
++    public int hashCode() {
++        return uuid.hashCode();
++    }
+ }
+Index: src/ru/javawebinar/basejava/storage/ArrayStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/ArrayStorage.java	(revision ef8100a35703b43a0b58a9f7e2b520f1e04e06d3)
++++ src/ru/javawebinar/basejava/storage/ArrayStorage.java	(date 1531087147690)
+@@ -2,17 +2,18 @@
+ 
+ import ru.javawebinar.basejava.model.Resume;
+ 
++import java.util.Arrays;
++
+ /**
+  * Array based storage for Resumes
+  */
+ public class ArrayStorage {
+-    private Resume[] storage = new Resume[10000];
++    private static final int STORAGE_LIMIT = 10000;
++    private Resume[] storage = new Resume[STORAGE_LIMIT];
+     private int size = 0;
+ 
+     public void clear() {
+-        for (int i = 0; i < size; i++) {
+-            storage[i] = null;
+-        }
++        Arrays.fill(storage, 0, size, null);
+         size = 0;
+ 
+     }
+@@ -29,7 +30,7 @@
+     public void save(Resume r) {
+         if (getIndex(r.getUuid()) != -1) {
+             System.out.println("Resume " + r.getUuid() + " already exist");
+-        } else if (size >= storage.length) {
++        } else if (size >= STORAGE_LIMIT) {
+             System.out.println("Storage overflow");
+         } else {
+             storage[size] = r;
+@@ -62,9 +63,7 @@
+      */
+ 
+     public Resume[] getAll() {
+-        Resume[] result = new Resume[size];
+-        System.arraycopy(storage, 0, result, 0, size);
+-        return result;
++        return Arrays.copyOfRange(storage, 0, size);
+     }
+ 
+     public int size() {
