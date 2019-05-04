@@ -1,0 +1,83 @@
+Index: src/ru/javawebinar/basejava/MainString.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/MainString.java	(date 1556998189083)
++++ src/ru/javawebinar/basejava/MainString.java	(date 1556998189083)
+@@ -0,0 +1,23 @@
++package ru.javawebinar.basejava;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 04.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class MainString {
++    public static void main(String[] args) {
++        String[] strArray = new String[]{"1", "2", "3", "4", "5"};
++//        String result = "";
++        StringBuilder sb = new StringBuilder();
++        for (String str : strArray) {
++            sb.append(str).append(", ");
++        }
++        System.out.println(sb.toString());
++
++        String str1 = "abc";
++        String str3 = "c";
++        String str2 = ("ab" + str3).intern();
++        System.out.println(str1 == str2);
++    }
++}
+Index: src/MainArray.java
+===================================================================
+--- src/MainArray.java	(date 1556995589000)
++++ src/ru/javawebinar/basejava/MainArray.java	(date 1556998467383)
+@@ -1,3 +1,5 @@
++package ru.javawebinar.basejava;
++
+ import ru.javawebinar.basejava.model.Resume;
+ import ru.javawebinar.basejava.storage.ArrayStorage;
+ import ru.javawebinar.basejava.storage.Storage;
+@@ -7,7 +9,7 @@
+ import java.io.InputStreamReader;
+ 
+ /**
+- * Test for com.urise.webapp.storage.ru.javawebinar.basejava.storage.ArrayStorage
++ * Test for ru.javawebinar.basejava.storage.ArrayStorage
+  */
+ public class MainArray {
+     private final static Storage ARRAY_STORAGE = new ArrayStorage();
+Index: src/MainTestArrayStorage.java
+===================================================================
+--- src/MainTestArrayStorage.java	(date 1556995589000)
++++ src/ru/javawebinar/basejava/MainTestArrayStorage.java	(date 1556998467337)
+@@ -1,9 +1,11 @@
++package ru.javawebinar.basejava;
++
+ import ru.javawebinar.basejava.model.Resume;
+ import ru.javawebinar.basejava.storage.ArrayStorage;
+ import ru.javawebinar.basejava.storage.Storage;
+ 
+ /**
+- * Test for com.urise.webapp.storage.ru.javawebinar.basejava.storage.ArrayStorage
++ * Test for ru.javawebinar.basejava.storage.ArrayStorage
+  */
+ public class MainTestArrayStorage {
+     private static final Storage ARRAY_STORAGE = new ArrayStorage();
+Index: lesson/lesson1.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- lesson/lesson1.md	(date 1556995589000)
++++ lesson/lesson1.md	(date 1556998365122)
+@@ -86,7 +86,7 @@
+ <------- storage.length (10000) ------->
+ ```
+ - Посмотрите на класс `java.util.Arrays`. В нем есть полезные методы, которые помогут вам написать более простой и понятный код
+-- Протестируйте вашу реализацию с помощью классов `MainArray.main()` и `MainTestArrayStorage.main()`
++- Протестируйте вашу реализацию с помощью классов `ru.javawebinar.basejava.MainArray.main()` и `ru.javawebinar.basejava.MainTestArrayStorage.main()`
+ - Изучите дополнительные материалы по IntelliJ IDEA:
+   - [Idea Wiki](https://github.com/JavaOPs/topjava/wiki/IDEA) ([поставьте кодировку UTF-8](https://github.com/JavaOPs/topjava/wiki/IDEA#Поставить-кодировку-utf-8), [поменяйте шрифт по умолчанию на DejaVu](https://github.com/JavaOPs/topjava/wiki/IDEA#Поменять-фонт-по-умолчанию-dejavu))
+   - [Руководство пользователя IntelliJ IDEA. Отладчик](http://info.javarush.ru/idea_help/2014/01/22/Руководство-пользователя-IntelliJ-IDEA-Отладчик-.html)
