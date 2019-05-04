@@ -1,0 +1,241 @@
+Index: src/MainArray.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/MainArray.java	(revision 2433c9219dc006b62098ac818f068f30f55bedf0)
++++ src/MainArray.java	(date 1556995183504)
+@@ -65,7 +65,7 @@
+         }
+     }
+ 
+-    static void printAll() {
++    private static void printAll() {
+         Resume[] all = ARRAY_STORAGE.getAll();
+         System.out.println("----------------------------");
+         if (all.length == 0) {
+Index: src/MainTestArrayStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/MainTestArrayStorage.java	(revision 2433c9219dc006b62098ac818f068f30f55bedf0)
++++ src/MainTestArrayStorage.java	(date 1556994980750)
+@@ -6,7 +6,7 @@
+  * Test for com.urise.webapp.storage.ru.javawebinar.basejava.storage.ArrayStorage
+  */
+ public class MainTestArrayStorage {
+-    static final Storage ARRAY_STORAGE = new ArrayStorage();
++    private static final Storage ARRAY_STORAGE = new ArrayStorage();
+ 
+     public static void main(String[] args) {
+         Resume r1 = new Resume();
+@@ -34,7 +34,7 @@
+         System.out.println("Size: " + ARRAY_STORAGE.size());
+     }
+ 
+-    static void printAll() {
++    private static void printAll() {
+         System.out.println("\nGet All");
+         for (Resume r : ARRAY_STORAGE.getAll()) {
+             System.out.println(r);
+Index: src/ru/javawebinar/basejava/storage/AbstractArrayStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/AbstractArrayStorage.java	(revision 2433c9219dc006b62098ac818f068f30f55bedf0)
++++ src/ru/javawebinar/basejava/storage/AbstractArrayStorage.java	(date 1556994980693)
+@@ -2,27 +2,74 @@
+ 
+ import ru.javawebinar.basejava.model.Resume;
+ 
++import java.util.Arrays;
++
+ /**
+  * Array based storage for Resumes
+  */
+ public abstract class AbstractArrayStorage implements Storage {
+-    protected static final int STORAGE_LIMIT = 10000;
+ 
++    private static final int STORAGE_LIMIT = 10000;
+     protected Resume[] storage = new Resume[STORAGE_LIMIT];
+-    protected int size = 0;
++    int size = 0;
+ 
+     public int size() {
+         return size;
+     }
+ 
++    public Resume[] getAll() {
++        return Arrays.copyOfRange(storage, 0, size);
++    }
++
+     public Resume get(String uuid) {
+         int index = getIndex(uuid);
+-        if (index == -1) {
++        if (index < 0) {
+             System.out.println("Resume " + uuid + " not exist");
+             return null;
+         }
+         return storage[index];
+     }
+ 
++    public void clear() {
++        Arrays.fill(storage, 0, size, null);
++        size = 0;
++    }
++
++    public void update(Resume r) {
++        int index = getIndex(r.getUuid());
++        if (index < 0) {
++            System.out.println("Resume " + r.getUuid() + " not exist");
++        } else {
++            storage[index] = r;
++        }
++    }
++
++    public void save(Resume r) {
++        int index = getIndex(r.getUuid());
++        if (index >= 0) {
++            System.out.println("Resume " + r.getUuid() + " already exist");
++        } else if (size >= STORAGE_LIMIT) {
++            System.out.println("Storage overflow");
++        } else {
++            insertElement(r, index);
++            size++;
++        }
++    }
++
++    public void delete(String uuid) {
++        int index = getIndex(uuid);
++        if (index < 0) {
++            System.out.println("Resume " + uuid + " not exist");
++        } else {
++            fillDeletedElement(index);
++            storage[size - 1] = null;
++            size--;
++        }
++    }
++
++    protected abstract void insertElement(Resume r, int index);
++
++    protected abstract void fillDeletedElement(int index);
++
+     protected abstract int getIndex(String uuid);
+ }
+\ No newline at end of file
+Index: src/ru/javawebinar/basejava/storage/ArrayStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/ArrayStorage.java	(revision 2433c9219dc006b62098ac818f068f30f55bedf0)
++++ src/ru/javawebinar/basejava/storage/ArrayStorage.java	(date 1556994734192)
+@@ -2,51 +2,19 @@
+ 
+ import ru.javawebinar.basejava.model.Resume;
+ 
+-import java.util.Arrays;
+-
+ /**
+  * Array based storage for Resumes
+  */
+ public class ArrayStorage extends AbstractArrayStorage {
+ 
+-    public void clear() {
+-        Arrays.fill(storage, 0, size, null);
+-        size = 0;
+-    }
+-
+-    public void update(Resume r) {
+-        int index = getIndex(r.getUuid());
+-        if (index == -1) {
+-            System.out.println("Resume " + r.getUuid() + " not exist");
+-        } else {
+-            storage[index] = r;
+-        }
+-    }
+-
+-    public void save(Resume r) {
+-        if (getIndex(r.getUuid()) != -1) {
+-            System.out.println("Resume " + r.getUuid() + " already exist");
+-        } else if (size >= STORAGE_LIMIT) {
+-            System.out.println("Storage overflow");
+-        } else {
+-            storage[size] = r;
+-            size++;
+-        }
++    @Override
++    protected void insertElement(Resume r, int index) {
++        storage[size] = r;
+     }
+ 
+-    public void delete(String uuid) {
+-        int index = getIndex(uuid);
+-        if (index == -1) {
+-            System.out.println("Resume " + uuid + " not exist");
+-        } else {
+-            storage[index] = storage[size - 1];
+-            storage[size - 1] = null;
+-            size--;
+-        }
+-    }
+-
+-    public Resume[] getAll() {
+-        return Arrays.copyOfRange(storage, 0, size);
++    @Override
++    protected void fillDeletedElement(int index) {
++        storage[index] = storage[size - 1];
+     }
+ 
+     protected int getIndex(String uuid) {
+Index: src/ru/javawebinar/basejava/storage/SortedArrayStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/SortedArrayStorage.java	(revision 2433c9219dc006b62098ac818f068f30f55bedf0)
++++ src/ru/javawebinar/basejava/storage/SortedArrayStorage.java	(date 1556995149473)
+@@ -5,30 +5,23 @@
+ import java.util.Arrays;
+ 
+ public class SortedArrayStorage extends AbstractArrayStorage {
++
+     @Override
+-    public void clear() {
+-
+-    }
++    protected void insertElement(Resume r, int index) {
++        // http://codereview.stackexchange.com/questions/36221/binary-search-for-inserting-in-array#answer-36239
+ 
+-    @Override
+-    public void update(Resume r) {
+-
++        int insertIdx = -index - 1;
++        System.arraycopy(storage, insertIdx, storage, insertIdx + 1, size - insertIdx);
++        storage[insertIdx] = r;
+     }
+ 
+     @Override
+-    public void save(Resume r) {
+-
+-    }
+-
+-    @Override
+-    public void delete(String uuid) {
+-
++    protected void fillDeletedElement(int index) {
++        int numMoved = size - index - 1;
++        if (numMoved > 0) {
++            System.arraycopy(storage, index + 1, storage, index, numMoved);
++        }
+     }
+-
+-    @Override
+-    public Resume[] getAll() {
+-        return new Resume[0];
+-    }
+ 
+     @Override
+     protected int getIndex(String uuid) {
