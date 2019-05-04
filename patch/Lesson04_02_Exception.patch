@@ -1,0 +1,229 @@
+Index: src/ru/javawebinar/basejava/exception/StorageException.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/exception/StorageException.java	(date 1557003139288)
++++ src/ru/javawebinar/basejava/exception/StorageException.java	(date 1557003139288)
+@@ -0,0 +1,19 @@
++package ru.javawebinar.basejava.exception;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 04.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class StorageException extends RuntimeException {
++    private final String uuid;
++
++    public StorageException(String message, String uuid) {
++        super(message);
++        this.uuid = uuid;
++    }
++
++    public String getUuid() {
++        return uuid;
++    }
++}
+Index: src/ru/javawebinar/basejava/exception/NotExistStorageException.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/exception/NotExistStorageException.java	(date 1557003291489)
++++ src/ru/javawebinar/basejava/exception/NotExistStorageException.java	(date 1557003291489)
+@@ -0,0 +1,12 @@
++package ru.javawebinar.basejava.exception;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 04.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class NotExistStorageException extends StorageException {
++    public NotExistStorageException(String uuid) {
++        super("Resume " + uuid + " not exist", uuid);
++    }
++}
+Index: src/ru/javawebinar/basejava/exception/ExistStorageException.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/exception/ExistStorageException.java	(date 1557003248615)
++++ src/ru/javawebinar/basejava/exception/ExistStorageException.java	(date 1557003248615)
+@@ -0,0 +1,13 @@
++package ru.javawebinar.basejava.exception;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 04.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class ExistStorageException extends StorageException {
++
++    public ExistStorageException(String uuid) {
++        super("Resume " + uuid + " already exist", uuid);
++    }
++}
+Index: src/ru/javawebinar/basejava/MainArray.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/MainArray.java	(date 1556998612000)
++++ src/ru/javawebinar/basejava/MainArray.java	(date 1557003730373)
+@@ -36,14 +36,12 @@
+                     System.out.println(ARRAY_STORAGE.size());
+                     break;
+                 case "save":
+-                    r = new Resume();
+-                    r.setUuid(uuid);
++                    r = new Resume(uuid);
+                     ARRAY_STORAGE.save(r);
+                     printAll();
+                     break;
+                 case "update":
+-                    r = new Resume();
+-                    r.setUuid(uuid);
++                    r = new Resume(uuid);
+                     ARRAY_STORAGE.update(r);
+                     printAll();
+                     break;
+Index: src/ru/javawebinar/basejava/MainTestArrayStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/MainTestArrayStorage.java	(date 1556998612000)
++++ src/ru/javawebinar/basejava/MainTestArrayStorage.java	(date 1557004073947)
+@@ -11,12 +11,9 @@
+     private static final Storage ARRAY_STORAGE = new ArrayStorage();
+ 
+     public static void main(String[] args) {
+-        Resume r1 = new Resume();
+-        r1.setUuid("uuid1");
+-        Resume r2 = new Resume();
+-        r2.setUuid("uuid2");
+-        Resume r3 = new Resume();
+-        r3.setUuid("uuid3");
++        Resume r1 = new Resume("uuid1");
++        Resume r2 = new Resume("uuid2");
++        Resume r3 = new Resume("uuid3");
+ 
+         ARRAY_STORAGE.save(r1);
+         ARRAY_STORAGE.save(r2);
+Index: src/ru/javawebinar/basejava/model/Resume.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/Resume.java	(date 1556998612000)
++++ src/ru/javawebinar/basejava/model/Resume.java	(date 1557003730264)
+@@ -1,21 +1,27 @@
+ package ru.javawebinar.basejava.model;
+ 
++import java.util.UUID;
++
+ /**
+  * com.urise.webapp.model.ru.javawebinar.basejava.model.Resume class
+  */
+ public class Resume implements Comparable<Resume> {
+ 
+     // Unique identifier
+-    private String uuid;
++    private final String uuid;
++
++    public Resume() {
++        this(UUID.randomUUID().toString());
++    }
++
++    public Resume(String uuid) {
++        this.uuid = uuid;
++    }
+ 
+     public String getUuid() {
+         return uuid;
+     }
+ 
+-    public void setUuid(String uuid) {
+-        this.uuid = uuid;
+-    }
+-
+     @Override
+     public String toString() {
+         return uuid;
+Index: src/ru/javawebinar/basejava/storage/AbstractArrayStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/AbstractArrayStorage.java	(date 1556998612000)
++++ src/ru/javawebinar/basejava/storage/AbstractArrayStorage.java	(date 1557003548174)
+@@ -1,5 +1,8 @@
+ package ru.javawebinar.basejava.storage;
+ 
++import ru.javawebinar.basejava.exception.ExistStorageException;
++import ru.javawebinar.basejava.exception.NotExistStorageException;
++import ru.javawebinar.basejava.exception.StorageException;
+ import ru.javawebinar.basejava.model.Resume;
+ 
+ import java.util.Arrays;
+@@ -24,8 +27,7 @@
+     public Resume get(String uuid) {
+         int index = getIndex(uuid);
+         if (index < 0) {
+-            System.out.println("Resume " + uuid + " not exist");
+-            return null;
++            throw new NotExistStorageException(uuid);
+         }
+         return storage[index];
+     }
+@@ -38,7 +40,7 @@
+     public void update(Resume r) {
+         int index = getIndex(r.getUuid());
+         if (index < 0) {
+-            System.out.println("Resume " + r.getUuid() + " not exist");
++            throw new NotExistStorageException(r.getUuid());
+         } else {
+             storage[index] = r;
+         }
+@@ -47,9 +49,9 @@
+     public void save(Resume r) {
+         int index = getIndex(r.getUuid());
+         if (index >= 0) {
+-            System.out.println("Resume " + r.getUuid() + " already exist");
++            throw new ExistStorageException(r.getUuid());
+         } else if (size >= STORAGE_LIMIT) {
+-            System.out.println("Storage overflow");
++            throw new StorageException("Storage overflow", r.getUuid());
+         } else {
+             insertElement(r, index);
+             size++;
+@@ -59,7 +61,7 @@
+     public void delete(String uuid) {
+         int index = getIndex(uuid);
+         if (index < 0) {
+-            System.out.println("Resume " + uuid + " not exist");
++            throw new NotExistStorageException(uuid);
+         } else {
+             fillDeletedElement(index);
+             storage[size - 1] = null;
+Index: src/ru/javawebinar/basejava/storage/SortedArrayStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/SortedArrayStorage.java	(date 1556998612000)
++++ src/ru/javawebinar/basejava/storage/SortedArrayStorage.java	(date 1557003912145)
+@@ -25,8 +25,7 @@
+ 
+     @Override
+     protected int getIndex(String uuid) {
+-        Resume searchKey = new Resume();
+-        searchKey.setUuid(uuid);
++        Resume searchKey = new Resume(uuid);
+         return Arrays.binarySearch(storage, 0, size, searchKey);
+     }
+ }
+\ No newline at end of file
