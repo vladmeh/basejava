@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
  * @link https://github.com/vladmeh/basejava
  */
 
-public abstract class AbstractArrayStorageTest {
+public abstract class AbstractStorageTest {
 
     private static final String UUID_1 = "uuid1";
     private static final String UUID_2 = "uuid2";
@@ -35,7 +35,7 @@ public abstract class AbstractArrayStorageTest {
 
     private final Storage storage;
 
-    AbstractArrayStorageTest(Storage storage) {
+    AbstractStorageTest(Storage storage) {
         this.storage = storage;
     }
 
@@ -103,6 +103,7 @@ public abstract class AbstractArrayStorageTest {
         storage.save(RESUME_1);
     }
 
+    // TODO remain only for Arrays implementations
     @Test(expected = StorageException.class)
     public void saveOverflow() {
         try {
