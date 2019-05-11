@@ -28,6 +28,8 @@ public class MainCollections {
         collection.add(RESUME_2);
         collection.add(RESUME_3);
 
+        System.out.println(Arrays.toString(collection.toArray()));
+
         for (Resume r : collection) {
             System.out.println(r);
             if (Objects.equals(r.getUuid(), UUID_1)) {
@@ -49,6 +51,8 @@ public class MainCollections {
         map.put(UUID_1, RESUME_1);
         map.put(UUID_2, RESUME_2);
         map.put(UUID_3, RESUME_3);
+
+        System.out.println(map.get(UUID_4));
 
         // Bad!
         for (String uuid : map.keySet()) {
