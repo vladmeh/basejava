@@ -6,7 +6,7 @@ import java.util.UUID;
 /**
  * com.urise.webapp.model.ru.javawebinar.basejava.model.Resume class
  */
-public class Resume {
+public class Resume implements Comparable<Resume>{
 
     // Unique identifier
     private final String uuid;
@@ -31,26 +31,6 @@ public class Resume {
         return uuid + '(' + fullName + ')';
     }
 
-//    @Override
-//    public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (o == null || getClass() != o.getClass()) return false;
-//
-//        Resume resume = (Resume) o;
-//
-//        if (!uuid.equals(resume.uuid)) return false;
-//        return fullName.equals(resume.fullName);
-//    }
-//
-//    @Override
-//    public int hashCode() {
-//        int result = uuid.hashCode();
-//        result = 31 * result + fullName.hashCode();
-//
-//        return result;
-//    }
-
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -63,5 +43,11 @@ public class Resume {
     @Override
     public int hashCode() {
         return Objects.hash(getUuid(), fullName);
+    }
+
+    @Override
+    public int compareTo(Resume o) {
+        int cmp = fullName.compareTo(o.fullName);
+        return cmp != 0 ? cmp : uuid.compareTo(o.uuid);
     }
 }

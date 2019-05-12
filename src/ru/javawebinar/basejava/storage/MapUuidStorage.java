@@ -2,11 +2,10 @@ package ru.javawebinar.basejava.storage;
 
 import ru.javawebinar.basejava.model.Resume;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static java.util.Comparator.comparing;
-import static java.util.Map.Entry.comparingByKey;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 12.05.2019.
@@ -55,19 +54,8 @@ public class MapUuidStorage extends AbstractStorage {
     }
 
     @Override
-    public Resume[] getAll() {
-        Map<String, Resume> sortedMap = map
-                .entrySet()
-                .stream()
-                .sorted(comparingByKey())
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (e1, e2) -> e2,
-                        LinkedHashMap::new)
-                );
-
-        return sortedMap.values().toArray(new Resume[0]);
+    protected List<Resume> doAll() {
+        return new ArrayList<>(map.values());
     }
 
     @Override
