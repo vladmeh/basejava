@@ -8,54 +8,52 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 12.05.2019.
+ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 13.05.2019.
  * @link https://github.com/vladmeh/basejava
  */
 
-// TODO implement
-// TODO create new MapStorage with search key not uuid
-public class MapUuidStorage extends AbstractStorage {
+public class MapResumeStorage extends AbstractStorage {
 
     private Map<String, Resume> map = new HashMap<>();
 
     @Override
-    protected String getSearchKey(String uuid) {
-        return uuid;
+    protected Resume getSearchKey(String uuid) {
+        return map.get(uuid);
     }
 
     @Override
     protected boolean isExist(Object searchKey) {
-        return map.containsKey(searchKey.toString());
+        return searchKey != null;
     }
 
     @Override
     protected void doUpdate(Resume r, Object searchKey) {
-        map.replace(searchKey.toString(), r);
+        map.replace(r.getUuid(), r);
     }
 
     @Override
     protected void doSave(Resume r, Object searchKey) {
-        map.put(searchKey.toString(), r);
+        map.put(r.getUuid(), r);
     }
 
     @Override
     protected Resume doGet(Object searchKey) {
-        return map.get(searchKey.toString());
+        return (Resume) searchKey;
     }
 
     @Override
     protected void doDelete(Object searchKey) {
-        map.remove(searchKey.toString());
-    }
-
-    @Override
-    public void clear() {
-        map.clear();
+        map.remove(((Resume) searchKey).getUuid());
     }
 
     @Override
     protected List<Resume> doAll() {
         return new ArrayList<>(map.values());
+    }
+
+    @Override
+    public void clear() {
+        map.clear();
     }
 
     @Override
