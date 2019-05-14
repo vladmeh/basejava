@@ -1,0 +1,270 @@
+Index: test/ru/javawebinar/basejava/storage/AbstractStorageTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/AbstractStorageTest.java	(date 1557861374000)
++++ test/ru/javawebinar/basejava/storage/AbstractStorageTest.java	(date 1557863488697)
+@@ -27,10 +27,10 @@
+     private static final Resume RESUME_4;
+ 
+     static {
+-        RESUME_1 = new Resume(UUID_1);
+-        RESUME_2 = new Resume(UUID_2);
+-        RESUME_3 = new Resume(UUID_3);
+-        RESUME_4 = new Resume(UUID_4);
++        RESUME_1 = new Resume(UUID_1, "Name1");
++        RESUME_2 = new Resume(UUID_2, "Name2");
++        RESUME_3 = new Resume(UUID_3, "Name3");
++        RESUME_4 = new Resume(UUID_4, "Name4");
+     }
+ 
+     final Storage storage;
+@@ -81,7 +81,7 @@
+ 
+     @Test
+     public void update() {
+-        Resume newResume = new Resume(UUID_1);
++        Resume newResume = new Resume(UUID_1, "New Name");
+         storage.update(newResume);
+         assertSame(newResume, storage.get(UUID_1));
+     }
+Index: src/ru/javawebinar/basejava/MainArray.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/MainArray.java	(date 1557861374000)
++++ src/ru/javawebinar/basejava/MainArray.java	(date 1557865945093)
+@@ -18,15 +18,15 @@
+         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+         Resume r;
+         while (true) {
+-            System.out.print("Введите одну из команд - (list | save uuid | delete uuid | get uuid | update uuid | clear | exit): ");
++            System.out.print("Введите одну из команд - (list | save fullName | delete uuid | get uuid | update uuid fullName | clear | exit): ");
+             String[] params = reader.readLine().trim().toLowerCase().split(" ");
+-            if (params.length < 1 || params.length > 2) {
++            if (params.length < 1 || params.length > 3) {
+                 System.out.println("Неверная команда.");
+                 continue;
+             }
+-            String uuid = null;
+-            if (params.length == 2) {
+-                uuid = params[1].intern();
++            String param = null;
++            if (params.length > 1) {
++                param = params[1].intern();
+             }
+             switch (params[0]) {
+                 case "list":
+@@ -36,21 +36,21 @@
+                     System.out.println(ARRAY_STORAGE.size());
+                     break;
+                 case "save":
+-                    r = new Resume(uuid);
++                    r = new Resume(param);
+                     ARRAY_STORAGE.save(r);
+                     printAll();
+                     break;
+                 case "update":
+-                    r = new Resume(uuid);
++                    r = new Resume(param, params[2]);
+                     ARRAY_STORAGE.update(r);
+                     printAll();
+                     break;
+                 case "delete":
+-                    ARRAY_STORAGE.delete(uuid);
++                    ARRAY_STORAGE.delete(param);
+                     printAll();
+                     break;
+                 case "get":
+-                    System.out.println(ARRAY_STORAGE.get(uuid));
++                    System.out.println(ARRAY_STORAGE.get(param));
+                     break;
+                 case "clear":
+                     ARRAY_STORAGE.clear();
+Index: src/ru/javawebinar/basejava/MainTestArrayStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/MainTestArrayStorage.java	(date 1557861374000)
++++ src/ru/javawebinar/basejava/MainTestArrayStorage.java	(date 1557864101932)
+@@ -11,9 +11,9 @@
+     private static final Storage ARRAY_STORAGE = new ArrayStorage();
+ 
+     public static void main(String[] args) {
+-        Resume r1 = new Resume("uuid1");
+-        Resume r2 = new Resume("uuid2");
+-        Resume r3 = new Resume("uuid3");
++        Resume r1 = new Resume("uuid1", "Name1");
++        Resume r2 = new Resume("uuid2", "Name2");
++        Resume r3 = new Resume("uuid3", "Name3");
+ 
+         ARRAY_STORAGE.save(r1);
+         ARRAY_STORAGE.save(r2);
+Index: test/ru/javawebinar/basejava/storage/AbstractArrayStorageTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/AbstractArrayStorageTest.java	(date 1557861374000)
++++ test/ru/javawebinar/basejava/storage/AbstractArrayStorageTest.java	(date 1557864266412)
+@@ -22,11 +22,11 @@
+     public void saveOverflow() {
+         try {
+             for (int i = 4; i <= AbstractArrayStorage.STORAGE_LIMIT; i++) {
+-                storage.save(new Resume());
++                storage.save(new Resume("Name" + i));
+             }
+         } catch (StorageException e) {
+             fail();
+         }
+-        storage.save(new Resume());
++        storage.save(new Resume("Overflow"));
+     }
+ }
+\ No newline at end of file
+Index: src/ru/javawebinar/basejava/MainCollections.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/MainCollections.java	(date 1557861374000)
++++ src/ru/javawebinar/basejava/MainCollections.java	(date 1557864101965)
+@@ -11,16 +11,16 @@
+ 
+ public class MainCollections {
+     private static final String UUID_1 = "uuid1";
+-    private static final Resume RESUME_1 = new Resume(UUID_1);
++    private static final Resume RESUME_1 = new Resume(UUID_1, "Name1");
+ 
+     private static final String UUID_2 = "uuid2";
+-    private static final Resume RESUME_2 = new Resume(UUID_2);
++    private static final Resume RESUME_2 = new Resume(UUID_2, "Name2");
+ 
+     private static final String UUID_3 = "uuid3";
+-    private static final Resume RESUME_3 = new Resume(UUID_3);
++    private static final Resume RESUME_3 = new Resume(UUID_3, "Name3");
+ 
+     private static final String UUID_4 = "uuid4";
+-    private static final Resume RESUME_4 = new Resume(UUID_4);
++    private static final Resume RESUME_4 = new Resume(UUID_4, "Name4");
+ 
+     public static void main(String[] args) {
+         Collection<Resume> collection = new ArrayList<>();
+Index: src/ru/javawebinar/basejava/model/Resume.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/Resume.java	(date 1557861374000)
++++ src/ru/javawebinar/basejava/model/Resume.java	(date 1557866449507)
+@@ -1,5 +1,6 @@
+ package ru.javawebinar.basejava.model;
+ 
++import java.util.Objects;
+ import java.util.UUID;
+ 
+ /**
+@@ -10,12 +11,18 @@
+     // Unique identifier
+     private final String uuid;
+ 
+-    public Resume() {
+-        this(UUID.randomUUID().toString());
++    private final String fullName;
++
++    public Resume(String fullName) {
++        this(UUID.randomUUID().toString(), fullName);
+     }
+ 
+-    public Resume(String uuid) {
++    public Resume(String uuid, String fullName) {
++        Objects.requireNonNull(uuid, "Uuid mast not be null");
++        Objects.requireNonNull(fullName, "FullName mast not be null");
++
+         this.uuid = uuid;
++        this.fullName = fullName;
+     }
+ 
+     public String getUuid() {
+@@ -24,22 +31,25 @@
+ 
+     @Override
+     public String toString() {
+-        return uuid;
++        return uuid + '(' + fullName + ')';
+     }
+ 
+     @Override
+     public boolean equals(Object o) {
+         if (this == o) return true;
+-        if (o == null || getClass() != o.getClass()) return false;
++        if (!(o instanceof Resume)) return false;
+ 
+         Resume resume = (Resume) o;
+ 
+-        return uuid.equals(resume.uuid);
++        if (!getUuid().equals(resume.getUuid())) return false;
++        return fullName.equals(resume.fullName);
++
+     }
+ 
+     @Override
+     public int hashCode() {
+-        return uuid.hashCode();
++        int result = getUuid().hashCode();
++        result = 31 * result + fullName.hashCode();
++        return result;
+     }
+-
+ }
+Index: src/ru/javawebinar/basejava/storage/SortedArrayStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/SortedArrayStorage.java	(date 1557861374000)
++++ src/ru/javawebinar/basejava/storage/SortedArrayStorage.java	(date 1557866681213)
+@@ -6,14 +6,6 @@
+ import java.util.Comparator;
+ 
+ public class SortedArrayStorage extends AbstractArrayStorage {
+-    /*
+-    private static class ResumeComparator implements Comparator<Resume> {
+-        @Override
+-        public int compare(Resume o1, Resume o2) {
+-            return o1.getUuid().compareTo(o2.getUuid());
+-        }
+-    }
+-*/
+ 
+     private static final Comparator<Resume> RESUME_COMPARATOR = Comparator.comparing(Resume::getUuid);
+ 
+@@ -36,7 +28,7 @@
+ 
+     @Override
+     protected Integer getSearchKey(String uuid) {
+-        Resume searchKey = new Resume(uuid);
++        Resume searchKey = new Resume(uuid, "dummy");
+         return Arrays.binarySearch(storage, 0, size, searchKey, RESUME_COMPARATOR);
+     }
+ }
+\ No newline at end of file
+Index: src/ru/javawebinar/basejava/MainReflection.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/MainReflection.java	(date 1557861374000)
++++ src/ru/javawebinar/basejava/MainReflection.java	(date 1557864144939)
+@@ -13,7 +13,7 @@
+ 
+ public class MainReflection {
+     public static void main(String[] args) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+-        Resume r = new Resume();
++        Resume r = new Resume("Name");
+         Class<? extends Resume> resumeClass = r.getClass();
+ 
+         Field field = resumeClass.getDeclaredFields()[0];
