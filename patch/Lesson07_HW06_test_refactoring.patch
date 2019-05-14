@@ -1,0 +1,147 @@
+Index: test/ru/javawebinar/basejava/storage/AbstractStorageTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/AbstractStorageTest.java	(revision 78e357429455072d26f1ec53d9f8661169c19d39)
++++ test/ru/javawebinar/basejava/storage/AbstractStorageTest.java	(date 1557861290581)
+@@ -4,10 +4,10 @@
+ import org.junit.Test;
+ import ru.javawebinar.basejava.exception.ExistStorageException;
+ import ru.javawebinar.basejava.exception.NotExistStorageException;
+-import ru.javawebinar.basejava.exception.StorageException;
+ import ru.javawebinar.basejava.model.Resume;
+ 
+-import static org.junit.Assert.*;
++import static org.junit.Assert.assertEquals;
++import static org.junit.Assert.assertSame;
+ 
+ /**
+  * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 05.05.2019.
+@@ -33,7 +33,7 @@
+         RESUME_4 = new Resume(UUID_4);
+     }
+ 
+-    private final Storage storage;
++    final Storage storage;
+ 
+     AbstractStorageTest(Storage storage) {
+         this.storage = storage;
+@@ -103,19 +103,6 @@
+         storage.save(RESUME_1);
+     }
+ 
+-    // TODO remain only for Arrays implementations
+-    @Test(expected = StorageException.class)
+-    public void saveOverflow() {
+-        try {
+-            for (int i = 4; i <= AbstractArrayStorage.STORAGE_LIMIT; i++) {
+-                storage.save(new Resume());
+-            }
+-        } catch (StorageException e) {
+-            fail();
+-        }
+-        storage.save(new Resume());
+-    }
+-
+     @Test(expected = NotExistStorageException.class)
+     public void delete() {
+         storage.delete(UUID_1);
+Index: test/ru/javawebinar/basejava/storage/SortedArrayStorageTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/SortedArrayStorageTest.java	(revision 78e357429455072d26f1ec53d9f8661169c19d39)
++++ test/ru/javawebinar/basejava/storage/SortedArrayStorageTest.java	(date 1557860783901)
+@@ -5,7 +5,7 @@
+  * @link https://github.com/vladmeh/basejava
+  */
+ 
+-public class SortedArrayStorageTest extends AbstractStorageTest {
++public class SortedArrayStorageTest extends AbstractArrayStorageTest {
+ 
+     public SortedArrayStorageTest() {
+         super(new SortedArrayStorage());
+Index: test/ru/javawebinar/basejava/storage/AbstractArrayStorageTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/AbstractArrayStorageTest.java	(date 1557861178452)
++++ test/ru/javawebinar/basejava/storage/AbstractArrayStorageTest.java	(date 1557861178452)
+@@ -0,0 +1,32 @@
++package ru.javawebinar.basejava.storage;
++
++import org.junit.Test;
++import ru.javawebinar.basejava.exception.StorageException;
++import ru.javawebinar.basejava.model.Resume;
++
++import static org.junit.Assert.fail;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 05.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public abstract class AbstractArrayStorageTest extends AbstractStorageTest {
++
++    AbstractArrayStorageTest(Storage storage) {
++        super(storage);
++    }
++
++
++    @Test(expected = StorageException.class)
++    public void saveOverflow() {
++        try {
++            for (int i = 4; i <= AbstractArrayStorage.STORAGE_LIMIT; i++) {
++                storage.save(new Resume());
++            }
++        } catch (StorageException e) {
++            fail();
++        }
++        storage.save(new Resume());
++    }
++}
+\ No newline at end of file
+Index: test/ru/javawebinar/basejava/storage/ArrayStorageTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/ArrayStorageTest.java	(revision 78e357429455072d26f1ec53d9f8661169c19d39)
++++ test/ru/javawebinar/basejava/storage/ArrayStorageTest.java	(date 1557860783948)
+@@ -5,7 +5,7 @@
+  * @link https://github.com/vladmeh/basejava
+  */
+ 
+-public class ArrayStorageTest extends AbstractStorageTest {
++public class ArrayStorageTest extends AbstractArrayStorageTest {
+ 
+     public ArrayStorageTest() {
+         super(new ArrayStorage());
+Index: test/ru/javawebinar/basejava/storage/AllStorageTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/AllStorageTest.java	(date 1557861004584)
++++ test/ru/javawebinar/basejava/storage/AllStorageTest.java	(date 1557861004584)
+@@ -0,0 +1,17 @@
++package ru.javawebinar.basejava.storage;
++
++import org.junit.runner.RunWith;
++import org.junit.runners.Suite;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 14.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++@RunWith(Suite.class)
++@Suite.SuiteClasses({
++        ArrayStorageTest.class,
++        SortedArrayStorageTest.class,
++        ListStorageTest.class
++})
++public class AllStorageTest {
++}
