@@ -1,0 +1,219 @@
+Index: test/ru/javawebinar/basejava/storage/MapUuidStorageTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/MapUuidStorageTest.java	(date 1557870533529)
++++ test/ru/javawebinar/basejava/storage/MapUuidStorageTest.java	(date 1557870533529)
+@@ -0,0 +1,13 @@
++package ru.javawebinar.basejava.storage;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 15.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class MapUuidStorageTest extends AbstractStorageTest {
++
++    public MapUuidStorageTest() {
++        super(new MapUuidStorage());
++    }
++}
+\ No newline at end of file
+Index: src/ru/javawebinar/basejava/storage/MapResumeStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/MapResumeStorage.java	(date 1557871366481)
++++ src/ru/javawebinar/basejava/storage/MapResumeStorage.java	(date 1557871366481)
+@@ -0,0 +1,63 @@
++package ru.javawebinar.basejava.storage;
++
++import ru.javawebinar.basejava.model.Resume;
++
++import java.util.ArrayList;
++import java.util.HashMap;
++import java.util.List;
++import java.util.Map;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 12.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class MapResumeStorage extends AbstractStorage {
++
++    private Map<String, Resume> map = new HashMap<>();
++
++    @Override
++    protected Resume getSearchKey(String uuid) {
++        return map.get(uuid);
++    }
++
++    @Override
++    protected boolean isExist(Object resume) {
++        return resume != null;
++    }
++
++    @Override
++    protected void doUpdate(Resume r, Object resume) {
++        map.put(r.getUuid(), r);
++    }
++
++    @Override
++    protected void doSave(Resume r, Object resume) {
++        map.put(r.getUuid(), r);
++    }
++
++    @Override
++    protected Resume doGet(Object resume) {
++        return (Resume) resume;
++    }
++
++    @Override
++    protected void doDelete(Object resume) {
++        map.remove(((Resume) resume).getUuid());
++    }
++
++    @Override
++    public void clear() {
++        map.clear();
++    }
++
++    @Override
++    public List<Resume> doCopyAll() {
++        return new ArrayList<>(map.values());
++    }
++
++    @Override
++    public int size() {
++        return map.size();
++    }
++}
+Index: test/ru/javawebinar/basejava/storage/MapResumeStorageTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/MapResumeStorageTest.java	(date 1557870934241)
++++ test/ru/javawebinar/basejava/storage/MapResumeStorageTest.java	(date 1557870934241)
+@@ -0,0 +1,13 @@
++package ru.javawebinar.basejava.storage;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 15.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class MapResumeStorageTest extends AbstractStorageTest {
++
++    public MapResumeStorageTest() {
++        super(new MapResumeStorage());
++    }
++}
+\ No newline at end of file
+Index: src/ru/javawebinar/basejava/storage/MapUuidStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/MapUuidStorage.java	(date 1557870221000)
++++ src/ru/javawebinar/basejava/storage/MapUuidStorage.java	(date 1557871697479)
+@@ -2,7 +2,7 @@
+ 
+ import ru.javawebinar.basejava.model.Resume;
+ 
+-import java.util.Collections;
++import java.util.ArrayList;
+ import java.util.HashMap;
+ import java.util.List;
+ import java.util.Map;
+@@ -12,54 +12,52 @@
+  * @link https://github.com/vladmeh/basejava
+  */
+ 
+-// TODO implement
+-// TODO create new MapStorage with search key not uuid
+ public class MapUuidStorage extends AbstractStorage {
+ 
+     private Map<String, Resume> map = new HashMap<>();
+ 
+     @Override
+-    protected Object getSearchKey(String uuid) {
+-        return null;
++    protected String getSearchKey(String uuid) {
++        return uuid;
+     }
+ 
+     @Override
+-    protected boolean isExist(Object searchKey) {
+-        return false;
++    protected boolean isExist(Object uuid) {
++        return map.containsKey((String) uuid);
+     }
+ 
+     @Override
+-    protected void doUpdate(Resume r, Object searchKey) {
+-
++    protected void doUpdate(Resume r, Object uuid) {
++        map.put((String) uuid, r);
+     }
+ 
+     @Override
+-    protected void doSave(Resume r, Object searchKey) {
+-
++    protected void doSave(Resume r, Object uuid) {
++        map.put((String) uuid, r);
+     }
+ 
+     @Override
+-    protected Resume doGet(Object searchKey) {
+-        return null;
++    protected Resume doGet(Object uuid) {
++        return map.get((String) uuid);
+     }
+ 
+     @Override
+-    protected void doDelete(Object searchKey) {
+-
++    protected void doDelete(Object uuid) {
++        map.remove((String) uuid);
+     }
+ 
+     @Override
+     public void clear() {
+-
++        map.clear();
+     }
+ 
+     @Override
+     public List<Resume> doCopyAll() {
+-        return Collections.emptyList();
++        return new ArrayList<>(map.values());
+     }
+ 
+     @Override
+     public int size() {
+-        return 0;
++        return map.size();
+     }
+ }
+Index: test/ru/javawebinar/basejava/storage/AllStorageTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/AllStorageTest.java	(date 1557870221000)
++++ test/ru/javawebinar/basejava/storage/AllStorageTest.java	(date 1557870934277)
+@@ -11,7 +11,9 @@
+ @Suite.SuiteClasses({
+         ArrayStorageTest.class,
+         SortedArrayStorageTest.class,
+-        ListStorageTest.class
++        ListStorageTest.class,
++        MapUuidStorageTest.class,
++        MapResumeStorageTest.class
+ })
+ public class AllStorageTest {
+ }
