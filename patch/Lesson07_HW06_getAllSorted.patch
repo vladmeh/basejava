@@ -1,0 +1,232 @@
+Index: test/ru/javawebinar/basejava/storage/AbstractStorageTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/AbstractStorageTest.java	(date 1557866755000)
++++ test/ru/javawebinar/basejava/storage/AbstractStorageTest.java	(date 1557867608060)
+@@ -6,6 +6,9 @@
+ import ru.javawebinar.basejava.exception.NotExistStorageException;
+ import ru.javawebinar.basejava.model.Resume;
+ 
++import java.util.Arrays;
++import java.util.List;
++
+ import static org.junit.Assert.assertEquals;
+ import static org.junit.Assert.assertSame;
+ 
+@@ -54,11 +57,9 @@
+ 
+     @Test
+     public void getAll() {
+-        Resume[] array = storage.getAll();
+-        assertEquals(3, array.length);
+-        assertEquals(RESUME_1, array[0]);
+-        assertEquals(RESUME_2, array[1]);
+-        assertEquals(RESUME_3, array[2]);
++        List list = storage.getAllSorted();
++        assertEquals(3, list.size());
++        assertEquals(list, Arrays.asList(RESUME_1, RESUME_2, RESUME_3));
+     }
+ 
+     @Test
+Index: src/ru/javawebinar/basejava/storage/MapUuidStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/MapUuidStorage.java	(date 1557866755000)
++++ src/ru/javawebinar/basejava/storage/MapUuidStorage.java	(date 1557868641093)
+@@ -2,7 +2,9 @@
+ 
+ import ru.javawebinar.basejava.model.Resume;
+ 
++import java.util.Collections;
+ import java.util.HashMap;
++import java.util.List;
+ import java.util.Map;
+ 
+ /**
+@@ -52,8 +54,8 @@
+     }
+ 
+     @Override
+-    public Resume[] getAll() {
+-        return new Resume[0];
++    public List<Resume> doCopyAll() {
++        return Collections.emptyList();
+     }
+ 
+     @Override
+Index: src/ru/javawebinar/basejava/MainArray.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/MainArray.java	(date 1557866755000)
++++ src/ru/javawebinar/basejava/MainArray.java	(date 1557868641167)
+@@ -7,6 +7,7 @@
+ import java.io.BufferedReader;
+ import java.io.IOException;
+ import java.io.InputStreamReader;
++import java.util.List;
+ 
+ /**
+  * Test for ru.javawebinar.basejava.storage.ArrayStorage
+@@ -66,9 +67,9 @@
+     }
+ 
+     private static void printAll() {
+-        Resume[] all = ARRAY_STORAGE.getAll();
++        List<Resume> all = ARRAY_STORAGE.getAllSorted();
+         System.out.println("----------------------------");
+-        if (all.length == 0) {
++        if (all.size() == 0) {
+             System.out.println("Empty");
+         } else {
+             for (Resume r : all) {
+Index: src/ru/javawebinar/basejava/MainTestArrayStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/MainTestArrayStorage.java	(date 1557866755000)
++++ src/ru/javawebinar/basejava/MainTestArrayStorage.java	(date 1557867438953)
+@@ -35,7 +35,7 @@
+ 
+     private static void printAll() {
+         System.out.println("\nGet All");
+-        for (Resume r : ARRAY_STORAGE.getAll()) {
++        for (Resume r : ARRAY_STORAGE.getAllSorted()) {
+             System.out.println(r);
+         }
+     }
+Index: src/ru/javawebinar/basejava/model/Resume.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/Resume.java	(date 1557866755000)
++++ src/ru/javawebinar/basejava/model/Resume.java	(date 1557867102669)
+@@ -6,7 +6,7 @@
+ /**
+  * com.urise.webapp.model.ru.javawebinar.basejava.model.Resume class
+  */
+-public class Resume {
++public class Resume implements Comparable<Resume>{
+ 
+     // Unique identifier
+     private final String uuid;
+@@ -52,4 +52,10 @@
+         result = 31 * result + fullName.hashCode();
+         return result;
+     }
++
++    @Override
++    public int compareTo(Resume o) {
++        int cmp = fullName.compareTo(o.fullName);
++        return cmp != 0 ? cmp : uuid.compareTo(o.uuid);
++    }
+ }
+Index: src/ru/javawebinar/basejava/storage/AbstractArrayStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/AbstractArrayStorage.java	(date 1557866755000)
++++ src/ru/javawebinar/basejava/storage/AbstractArrayStorage.java	(date 1557868083315)
+@@ -4,6 +4,7 @@
+ import ru.javawebinar.basejava.model.Resume;
+ 
+ import java.util.Arrays;
++import java.util.List;
+ 
+ /**
+  * Array based storage for Resumes
+@@ -20,8 +21,8 @@
+     }
+ 
+     @Override
+-    public Resume[] getAll() {
+-        return Arrays.copyOfRange(storage, 0, size);
++    public List<Resume> doCopyAll() {
++        return Arrays.asList(Arrays.copyOfRange(storage, 0, size));
+     }
+ 
+     @Override
+Index: src/ru/javawebinar/basejava/storage/Storage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/Storage.java	(date 1557866755000)
++++ src/ru/javawebinar/basejava/storage/Storage.java	(date 1557867438841)
+@@ -2,7 +2,7 @@
+ 
+ import ru.javawebinar.basejava.model.Resume;
+ 
+-import java.util.Arrays;
++import java.util.List;
+ 
+ /**
+  * Array based storage for Resumes
+@@ -22,7 +22,7 @@
+      * @return array, contains only Resumes in storage (without null)
+      */
+ 
+-    Resume[] getAll();
++    List<Resume> getAllSorted();
+ 
+     int size();
+ }
+Index: src/ru/javawebinar/basejava/storage/AbstractStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/AbstractStorage.java	(date 1557866755000)
++++ src/ru/javawebinar/basejava/storage/AbstractStorage.java	(date 1557868641131)
+@@ -4,6 +4,9 @@
+ import ru.javawebinar.basejava.exception.NotExistStorageException;
+ import ru.javawebinar.basejava.model.Resume;
+ 
++import java.util.Collections;
++import java.util.List;
++
+ /**
+  * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 12.05.2019.
+  * @link https://github.com/vladmeh/basejava
+@@ -23,6 +26,15 @@
+ 
+     protected abstract void doDelete(Object searchKey);
+ 
++    protected abstract List<Resume> doCopyAll();
++
++    @Override
++    public List<Resume> getAllSorted() {
++        List<Resume> list = doCopyAll();
++        Collections.sort(list);
++        return list;
++    }
++
+     @Override
+     public void update(Resume r) {
+         Object searchKey = getExistedSearchKey(r.getUuid());
+Index: src/ru/javawebinar/basejava/storage/ListStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/ListStorage.java	(date 1557866755000)
++++ src/ru/javawebinar/basejava/storage/ListStorage.java	(date 1557868641045)
+@@ -55,8 +55,8 @@
+     }
+ 
+     @Override
+-    public Resume[] getAll() {
+-        return list.toArray(new Resume[0]);
++    public List<Resume> doCopyAll() {
++        return new ArrayList<>(list);
+     }
+ 
+     @Override
