@@ -1,0 +1,78 @@
+Index: src/ru/javawebinar/basejava/TestSingleton.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/TestSingleton.java	(date 1558124791902)
++++ src/ru/javawebinar/basejava/TestSingleton.java	(date 1558124791902)
+@@ -0,0 +1,37 @@
++package ru.javawebinar.basejava;
++
++import ru.javawebinar.basejava.model.SectionType;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 17.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class TestSingleton {
++    private static TestSingleton instance;
++
++    private TestSingleton() {
++    }
++
++    public static TestSingleton getInstance() {
++        if (instance == null) {
++            instance = new TestSingleton();
++        }
++        return instance;
++    }
++
++    public static void main(String[] args) {
++        TestSingleton.getInstance().toString();
++        Singleton instance = Singleton.valueOf("INSTANCE");
++        System.out.println(instance);
++        System.out.println(instance.ordinal());
++
++        for (SectionType type : SectionType.values()) {
++            System.out.println(type.getTitle());
++        }
++    }
++
++    public enum Singleton {
++        INSTANCE
++    }
++}
+Index: src/ru/javawebinar/basejava/model/SectionType.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/SectionType.java	(date 1558124742839)
++++ src/ru/javawebinar/basejava/model/SectionType.java	(date 1558124742839)
+@@ -0,0 +1,25 @@
++package ru.javawebinar.basejava.model;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 17.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public enum SectionType {
++    PERSONAL("Личные качества"),
++    OBJECTIVE("Позиция"),
++    ACHIEVEMENT("Достижения"),
++    QUALIFICATIONS("Квалификация"),
++    EXPERIENCE("Опыт работы"),
++    EDUCATION("Образование");
++
++    private String title;
++
++    SectionType(String title) {
++        this.title = title;
++    }
++
++    public String getTitle() {
++        return title;
++    }
++}
