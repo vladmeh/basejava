@@ -16,8 +16,7 @@ public class TextSection extends Section {
         this.content = content;
     }
 
-    @Override
-    public String toString() {
+    public String getContent() {
         return content;
     }
 
@@ -28,12 +27,17 @@ public class TextSection extends Section {
 
         TextSection that = (TextSection) o;
 
-        return content.equals(that.content);
+        return getContent().equals(that.getContent());
 
     }
 
     @Override
     public int hashCode() {
-        return content.hashCode();
+        return getContent().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return content;
     }
 }

@@ -1,9 +1,45 @@
 package ru.javawebinar.basejava.model;
 
+import java.util.List;
+import java.util.Objects;
+
 /**
  * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 18.05.2019.
  * @link https://github.com/vladmeh/basejava
  */
 
 public class ListSection extends Section {
+
+    private final List<String> items;
+
+
+    public ListSection(List<String> items) {
+        Objects.requireNonNull(items, "Items mast not be null");
+        this.items = items;
+    }
+
+    public List<String> getItems() {
+        return items;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ListSection)) return false;
+
+        ListSection that = (ListSection) o;
+
+        return getItems().equals(that.getItems());
+
+    }
+
+    @Override
+    public int hashCode() {
+        return getItems().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return items.toString();
+    }
 }
