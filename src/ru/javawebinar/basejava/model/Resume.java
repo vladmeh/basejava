@@ -62,11 +62,20 @@ public class Resume implements Comparable<Resume> {
         return cmp != 0 ? cmp : uuid.compareTo(o.uuid);
     }
 
+    public void setContact(ContactType type, String content) {
+        contacts.put(type, content);
+    }
+
     public String getContact(ContactType type) {
         return contacts.get(type);
+    }
+
+    public void setSection(SectionType type, Section section){
+        sections.put(type, section);
     }
 
     public Section getSection(SectionType type) {
         return sections.get(type);
     }
+
 }
