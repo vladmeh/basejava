@@ -1,0 +1,386 @@
+Index: src/ru/javawebinar/basejava/model/ContactType.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/ContactType.java	(date 1558216028358)
++++ src/ru/javawebinar/basejava/model/ContactType.java	(date 1558216028358)
+@@ -0,0 +1,28 @@
++package ru.javawebinar.basejava.model;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 19.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public enum ContactType {
++    PHONE("Тел."),
++    MOBILE("Мобильный"),
++    HOME_PHONE("Домашний тел."),
++    SKYPE("Skype"),
++    MAIL("Почта"),
++    LINKEDIN("Профиль LinkedIn"),
++    GITHUB("Профиль GitHub"),
++    STATCKOVERFLOW("Профиль Stackoverflow"),
++    HOME_PAGE("Домашняя страница");
++
++    private final String title;
++
++    ContactType(String title) {
++        this.title = title;
++    }
++
++    public String getTitle() {
++        return title;
++    }
++}
+Index: src/ru/javawebinar/basejava/model/Resume.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/Resume.java	(revision 3c8e22dd87e9551de8167ce026673aa74e954ca6)
++++ src/ru/javawebinar/basejava/model/Resume.java	(date 1558217127248)
+@@ -1,18 +1,21 @@
+ package ru.javawebinar.basejava.model;
+ 
++import java.util.EnumMap;
++import java.util.Map;
+ import java.util.Objects;
+ import java.util.UUID;
+ 
+ /**
+  * com.urise.webapp.model.ru.javawebinar.basejava.model.Resume class
+  */
+-public class Resume implements Comparable<Resume>{
++public class Resume implements Comparable<Resume> {
+ 
+-    // Unique identifier
+     private final String uuid;
+-
+     private final String fullName;
+ 
++    private final Map<ContactType, String> contacts = new EnumMap<>(ContactType.class);
++    private final Map<SectionType, Section> sections = new EnumMap<>(SectionType.class);
++
+     public Resume(String fullName) {
+         this(UUID.randomUUID().toString(), fullName);
+     }
+@@ -29,6 +32,14 @@
+         return uuid;
+     }
+ 
++    public String getContact(ContactType type) {
++        return contacts.get(type);
++    }
++
++    public Section getSection(SectionType type) {
++        return sections.get(type);
++    }
++
+     @Override
+     public String toString() {
+         return uuid + '(' + fullName + ')';
+Index: src/ru/javawebinar/basejava/model/Section.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/Section.java	(date 1558216093583)
++++ src/ru/javawebinar/basejava/model/Section.java	(date 1558216093583)
+@@ -0,0 +1,9 @@
++package ru.javawebinar.basejava.model;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 19.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public abstract class Section {
++}
+Index: src/ru/javawebinar/basejava/model/TextSection.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/TextSection.java	(date 1558217127123)
++++ src/ru/javawebinar/basejava/model/TextSection.java	(date 1558217127123)
+@@ -0,0 +1,42 @@
++package ru.javawebinar.basejava.model;
++
++import java.util.Objects;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 19.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class TextSection extends Section {
++    private final String content;
++
++    public TextSection(String content) {
++        Objects.requireNonNull(content, "content must not be null");
++        this.content = content;
++    }
++
++    public String getContent() {
++        return content;
++    }
++
++    @Override
++    public boolean equals(Object o) {
++        if (this == o) return true;
++        if (o == null || getClass() != o.getClass()) return false;
++
++        TextSection that = (TextSection) o;
++
++        return content.equals(that.content);
++
++    }
++
++    @Override
++    public int hashCode() {
++        return content.hashCode();
++    }
++
++    @Override
++    public String toString() {
++        return content;
++    }
++}
+Index: src/ru/javawebinar/basejava/model/ListSection.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/ListSection.java	(date 1558217127163)
++++ src/ru/javawebinar/basejava/model/ListSection.java	(date 1558217127163)
+@@ -0,0 +1,44 @@
++package ru.javawebinar.basejava.model;
++
++import java.util.List;
++import java.util.Objects;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 19.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class ListSection extends Section {
++
++    private final List<String> items;
++
++    public ListSection(List<String> items) {
++        Objects.requireNonNull(items, "items must not be null");
++        this.items = items;
++    }
++
++    public List<String> getItems() {
++        return items;
++    }
++
++    @Override
++    public boolean equals(Object o) {
++        if (this == o) return true;
++        if (o == null || getClass() != o.getClass()) return false;
++
++        ListSection that = (ListSection) o;
++
++        return items.equals(that.items);
++
++    }
++
++    @Override
++    public int hashCode() {
++        return items.hashCode();
++    }
++
++    @Override
++    public String toString() {
++        return items.toString();
++    }
++}
+Index: src/ru/javawebinar/basejava/model/OrganizationSection.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/OrganizationSection.java	(date 1558217127213)
++++ src/ru/javawebinar/basejava/model/OrganizationSection.java	(date 1558217127213)
+@@ -0,0 +1,43 @@
++package ru.javawebinar.basejava.model;
++
++import java.util.List;
++import java.util.Objects;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 19.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class OrganizationSection extends Section {
++    private final List<Organization> organizations;
++
++    public OrganizationSection(List<Organization> organizations) {
++        Objects.requireNonNull(organizations, "organizations must not be null");
++        this.organizations = organizations;
++    }
++
++    public List<Organization> getOrganizations() {
++        return organizations;
++    }
++
++    @Override
++    public boolean equals(Object o) {
++        if (this == o) return true;
++        if (o == null || getClass() != o.getClass()) return false;
++
++        OrganizationSection that = (OrganizationSection) o;
++
++        return organizations.equals(that.organizations);
++
++    }
++
++    @Override
++    public int hashCode() {
++        return organizations.hashCode();
++    }
++
++    @Override
++    public String toString() {
++        return organizations.toString();
++    }
++}
+Index: src/ru/javawebinar/basejava/model/Organization.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/Organization.java	(date 1558222539425)
++++ src/ru/javawebinar/basejava/model/Organization.java	(date 1558222539425)
+@@ -0,0 +1,66 @@
++package ru.javawebinar.basejava.model;
++
++import java.time.LocalDate;
++import java.util.Objects;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 19.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class Organization {
++    private final Link homePage;
++
++    private final LocalDate startDate;
++    private final LocalDate endDate;
++    private final String title;
++    private final String description;
++
++    public Organization(String name, String url, LocalDate startDate, LocalDate endDate, String title, String description) {
++        Objects.requireNonNull(startDate, "startDate must not be null");
++        Objects.requireNonNull(endDate, "endDate must not be null");
++        Objects.requireNonNull(title, "title must not be null");
++
++        this.homePage = new Link(name, url);
++        this.startDate = startDate;
++        this.endDate = endDate;
++        this.title = title;
++        this.description = description;
++    }
++
++    @Override
++    public boolean equals(Object o) {
++        if (this == o) return true;
++        if (o == null || getClass() != o.getClass()) return false;
++
++        Organization that = (Organization) o;
++
++        if (!homePage.equals(that.homePage)) return false;
++        if (!startDate.equals(that.startDate)) return false;
++        if (!endDate.equals(that.endDate)) return false;
++        if (!title.equals(that.title)) return false;
++        return Objects.equals(description, that.description);
++
++    }
++
++    @Override
++    public int hashCode() {
++        int result = homePage.hashCode();
++        result = 31 * result + startDate.hashCode();
++        result = 31 * result + endDate.hashCode();
++        result = 31 * result + title.hashCode();
++        result = 31 * result + (description != null ? description.hashCode() : 0);
++        return result;
++    }
++
++    @Override
++    public String toString() {
++        return "Organization{" +
++                "homePage=" + homePage +
++                ", startDate=" + startDate +
++                ", endDate=" + endDate +
++                ", title='" + title + '\'' +
++                ", description='" + description + '\'' +
++                '}';
++    }
++}
+Index: src/ru/javawebinar/basejava/model/Link.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/Link.java	(date 1558217312075)
++++ src/ru/javawebinar/basejava/model/Link.java	(date 1558217312075)
+@@ -0,0 +1,51 @@
++package ru.javawebinar.basejava.model;
++
++import java.util.Objects;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 19.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class Link {
++    private final String name;
++    private final String url;
++
++    public Link(String name, String url) {
++        Objects.requireNonNull(name, "name must not be null");
++        this.name = name;
++        this.url = url;
++    }
++
++    public String getName() {
++        return name;
++    }
++
++    public String getUrl() {
++        return url;
++    }
++
++    @Override
++    public String toString() {
++        return "Link(" + name + ',' + url + ')';
++    }
++
++    @Override
++    public boolean equals(Object o) {
++        if (this == o) return true;
++        if (o == null || getClass() != o.getClass()) return false;
++
++        Link link = (Link) o;
++
++        if (!name.equals(link.name)) return false;
++        return Objects.equals(url, link.url);
++
++    }
++
++    @Override
++    public int hashCode() {
++        int result = name.hashCode();
++        result = 31 * result + (url != null ? url.hashCode() : 0);
++        return result;
++    }
++}
