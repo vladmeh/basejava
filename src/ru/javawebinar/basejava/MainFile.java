@@ -3,6 +3,7 @@ package ru.javawebinar.basejava;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 20.05.2019.
@@ -33,6 +34,22 @@ public class MainFile {
             System.out.println(fis.read());
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+
+        printDirectories(dir);
+    }
+
+    private static void printDirectories(File dir){
+        File[] files = dir.listFiles();
+
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) System.out.println("File: " + file.getName());
+                if (file.isDirectory()){
+                    System.out.println("Directory: " + file.getName());
+                    printDirectories(file);
+                }
+            }
         }
     }
 }
