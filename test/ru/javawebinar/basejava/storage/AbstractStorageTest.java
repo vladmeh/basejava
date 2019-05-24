@@ -4,8 +4,10 @@ import org.junit.Before;
 import org.junit.Test;
 import ru.javawebinar.basejava.exception.ExistStorageException;
 import ru.javawebinar.basejava.exception.NotExistStorageException;
-import ru.javawebinar.basejava.model.Resume;
+import ru.javawebinar.basejava.model.*;
 
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,6 +36,32 @@ public abstract class AbstractStorageTest {
         RESUME_2 = new Resume(UUID_2, "Name2");
         RESUME_3 = new Resume(UUID_3, "Name3");
         RESUME_4 = new Resume(UUID_4, "Name4");
+
+        RESUME_1.addContact(ContactType.MAIL, "test@test.tt");
+        RESUME_1.addContact(ContactType.PHONE, "123456789");
+
+        RESUME_1.addSection(SectionType.OBJECTIVE, new TextSection("Objective_1"));
+        RESUME_1.addSection(SectionType.PERSONAL, new TextSection("Personal_1"));
+        RESUME_1.addSection(SectionType.ACHIEVEMENT, new ListSection("Achievement_1", "Achievement_2", "Achievement_3"));
+        RESUME_1.addSection(SectionType.QUALIFICATIONS, new ListSection("Qualifications_1", "Qualifications_2", "Qualifications_3"));
+
+        RESUME_1.addSection(SectionType.EXPERIENCE,
+                new OrganizationSection(
+                        new Organization("Organization11", "http://Organization11.ru",
+                                new Organization.Position(LocalDate.of(2005, Month.JANUARY, 1), LocalDate.now(), "position1", "content1"),
+                                new Organization.Position(LocalDate.of(2001, Month.MARCH, 1), LocalDate.of(2005, Month.JANUARY, 1), "position2", "content2"))));
+        RESUME_1.addSection(SectionType.EDUCATION,
+                new OrganizationSection(
+                        new Organization("Institute", null,
+                                new Organization.Position(LocalDate.of(1996, Month.JANUARY, 1), LocalDate.of(2000, Month.DECEMBER, 1), "aspirant", null),
+                                new Organization.Position(LocalDate.of(2001, Month.MARCH, 1), LocalDate.of(2005, Month.JANUARY, 1), "student", "IT facultet")),
+                        new Organization("Organization12", "http://Organization12.ru")));
+        RESUME_2.addContact(ContactType.SKYPE, "skype2");
+        RESUME_2.addContact(ContactType.PHONE, "22222");
+        RESUME_2.addSection(SectionType.EXPERIENCE,
+                new OrganizationSection(
+                        new Organization("Organization2", "http://Organization2.ru",
+                                new Organization.Position(LocalDate.of(2015, Month.JANUARY, 1), LocalDate.now(), "position1", "content1"))));
     }
 
     final Storage storage;
