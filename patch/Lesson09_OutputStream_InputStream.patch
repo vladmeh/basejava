@@ -1,0 +1,58 @@
+Index: src/ru/javawebinar/basejava/storage/AbstractFileStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/AbstractFileStorage.java	(revision 2bf5d0f3ad12fee0026fc4fcde9306066c0ad9c8)
++++ src/ru/javawebinar/basejava/storage/AbstractFileStorage.java	(date 1558826965894)
+@@ -3,8 +3,7 @@
+ import ru.javawebinar.basejava.exception.StorageException;
+ import ru.javawebinar.basejava.model.Resume;
+ 
+-import java.io.File;
+-import java.io.IOException;
++import java.io.*;
+ import java.util.ArrayList;
+ import java.util.List;
+ import java.util.Objects;
+@@ -17,6 +16,11 @@
+ public abstract class AbstractFileStorage extends AbstractStorage<File> {
+     private File directory;
+ 
++    protected abstract void doWrite(Resume r, OutputStream file) throws IOException;
++
++    protected abstract Resume doRead(InputStream file) throws IOException;
++
++
+     public AbstractFileStorage(File directory) {
+         Objects.requireNonNull(directory, "directory must not be null");
+         if (!directory.isDirectory()) {
+@@ -29,10 +33,6 @@
+         this.directory = directory;
+     }
+ 
+-    protected abstract void doWrite(Resume r, File file) throws IOException;
+-
+-    protected abstract Resume doRead(File file) throws IOException;
+-
+     @Override
+     protected File getSearchKey(String uuid) {
+         return new File(directory, uuid);
+@@ -46,7 +46,7 @@
+     @Override
+     protected void doUpdate(Resume r, File file) {
+         try {
+-            doWrite(r, file);
++            doWrite(r, new BufferedOutputStream(new FileOutputStream(file)));
+         } catch (IOException e) {
+             throw new StorageException("File write error", r.getUuid(), e);
+         }
+@@ -65,7 +65,7 @@
+     @Override
+     protected Resume doGet(File file) {
+         try {
+-            return doRead(file);
++            return doRead(new BufferedInputStream(new FileInputStream(file)));
+         } catch (IOException e) {
+             throw new StorageException("File read error", file.getName(), e);
+         }
