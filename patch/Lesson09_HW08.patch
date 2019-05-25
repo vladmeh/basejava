@@ -1,0 +1,516 @@
+Index: test/ru/javawebinar/basejava/storage/AbstractStorageTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/AbstractStorageTest.java	(revision f1b2a2b6534e40c5a59bb4731467283eafdeabf6)
++++ test/ru/javawebinar/basejava/storage/AbstractStorageTest.java	(date 1558822152254)
+@@ -4,8 +4,9 @@
+ import org.junit.Test;
+ import ru.javawebinar.basejava.exception.ExistStorageException;
+ import ru.javawebinar.basejava.exception.NotExistStorageException;
+-import ru.javawebinar.basejava.model.Resume;
++import ru.javawebinar.basejava.model.*;
+ 
++import java.time.Month;
+ import java.util.Arrays;
+ import java.util.List;
+ 
+@@ -24,16 +25,40 @@
+     private static final String UUID_3 = "uuid3";
+     private static final String UUID_4 = "uuid4";
+ 
+-    private static final Resume RESUME_1;
+-    private static final Resume RESUME_2;
+-    private static final Resume RESUME_3;
+-    private static final Resume RESUME_4;
++    private static final Resume R1;
++    private static final Resume R2;
++    private static final Resume R3;
++    private static final Resume R4;
+ 
+     static {
+-        RESUME_1 = new Resume(UUID_1, "Name1");
+-        RESUME_2 = new Resume(UUID_2, "Name2");
+-        RESUME_3 = new Resume(UUID_3, "Name3");
+-        RESUME_4 = new Resume(UUID_4, "Name4");
++        R1 = new Resume(UUID_1, "Name1");
++        R2 = new Resume(UUID_2, "Name2");
++        R3 = new Resume(UUID_3, "Name3");
++        R4 = new Resume(UUID_4, "Name4");
++
++        R1.addContact(ContactType.MAIL, "mail1@ya.ru");
++        R1.addContact(ContactType.PHONE, "11111");
++        R1.addSection(SectionType.OBJECTIVE, new TextSection("Objective1"));
++        R1.addSection(SectionType.PERSONAL, new TextSection("Personal data"));
++        R1.addSection(SectionType.ACHIEVEMENT, new ListSection("Achivment11", "Achivment12", "Achivment13"));
++        R1.addSection(SectionType.QUALIFICATIONS, new ListSection("Java", "SQL", "JavaScript"));
++        R1.addSection(SectionType.EXPERIENCE,
++                new OrganizationSection(
++                        new Organization("Organization11", "http://Organization11.ru",
++                                new Organization.Position(2005, Month.JANUARY, "position1", "content1"),
++                                new Organization.Position(2001, Month.MARCH, 2005, Month.JANUARY, "position2", "content2"))));
++        R1.addSection(SectionType.EDUCATION,
++                new OrganizationSection(
++                        new Organization("Institute", null,
++                                new Organization.Position(1996, Month.JANUARY, 2000, Month.DECEMBER, "aspirant", null),
++                                new Organization.Position(2001, Month.MARCH, 2005, Month.JANUARY, "student", "IT facultet")),
++                        new Organization("Organization12", "http://Organization12.ru")));
++        R2.addContact(ContactType.SKYPE, "skype2");
++        R2.addContact(ContactType.PHONE, "22222");
++        R1.addSection(SectionType.EXPERIENCE,
++                new OrganizationSection(
++                        new Organization("Organization2", "http://Organization2.ru",
++                                new Organization.Position(2015, Month.JANUARY, "position1", "content1"))));
+     }
+ 
+     final Storage storage;
+@@ -45,9 +70,9 @@
+     @Before
+     public void setUp() {
+         storage.clear();
+-        storage.save(RESUME_1);
+-        storage.save(RESUME_2);
+-        storage.save(RESUME_3);
++        storage.save(R1);
++        storage.save(R2);
++        storage.save(R3);
+     }
+ 
+     @Test
+@@ -59,14 +84,14 @@
+     public void getAll() {
+         List list = storage.getAllSorted();
+         assertEquals(3, list.size());
+-        assertEquals(list, Arrays.asList(RESUME_1, RESUME_2, RESUME_3));
++        assertEquals(list, Arrays.asList(R1, R2, R3));
+     }
+ 
+     @Test
+     public void get() {
+-        assertGet(RESUME_1);
+-        assertGet(RESUME_2);
+-        assertGet(RESUME_3);
++        assertGet(R1);
++        assertGet(R2);
++        assertGet(R3);
+     }
+ 
+     @Test(expected = NotExistStorageException.class)
+@@ -94,14 +119,14 @@
+ 
+     @Test
+     public void save() {
+-        storage.save(RESUME_4);
++        storage.save(R4);
+         assertSize(4);
+-        assertGet(RESUME_4);
++        assertGet(R4);
+     }
+ 
+     @Test(expected = ExistStorageException.class)
+     public void saveExist() {
+-        storage.save(RESUME_1);
++        storage.save(R1);
+     }
+ 
+     @Test(expected = NotExistStorageException.class)
+Index: src/ru/javawebinar/basejava/util/DateUtil.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/util/DateUtil.java	(revision f1b2a2b6534e40c5a59bb4731467283eafdeabf6)
++++ src/ru/javawebinar/basejava/util/DateUtil.java	(date 1558820508560)
+@@ -9,6 +9,8 @@
+  */
+ 
+ public class DateUtil {
++    public static final LocalDate NOW = LocalDate.of(3000, 1, 1);
++
+     public static LocalDate of(int year, Month month) {
+         return LocalDate.of(year, month, 1);
+     }
+Index: src/ru/javawebinar/basejava/storage/AbstractFileStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/AbstractFileStorage.java	(revision f1b2a2b6534e40c5a59bb4731467283eafdeabf6)
++++ src/ru/javawebinar/basejava/storage/AbstractFileStorage.java	(date 1558823839133)
+@@ -5,6 +5,7 @@
+ 
+ import java.io.File;
+ import java.io.IOException;
++import java.util.ArrayList;
+ import java.util.List;
+ import java.util.Objects;
+ 
+@@ -28,6 +29,10 @@
+         this.directory = directory;
+     }
+ 
++    protected abstract void doWrite(Resume r, File file) throws IOException;
++
++    protected abstract Resume doRead(File file) throws IOException;
++
+     @Override
+     protected File getSearchKey(String uuid) {
+         return new File(directory, uuid);
+@@ -40,43 +45,68 @@
+ 
+     @Override
+     protected void doUpdate(Resume r, File file) {
+-
++        try {
++            doWrite(r, file);
++        } catch (IOException e) {
++            throw new StorageException("File write error", r.getUuid(), e);
++        }
+     }
+ 
+     @Override
+     protected void doSave(Resume r, File file) {
+         try {
+             file.createNewFile();
+-            doWrite(r, file);
+         } catch (IOException e) {
+-            throw new StorageException("IO error", file.getName(), e);
++            throw new StorageException("Couldn't create file " + file.getAbsolutePath(), file.getName(), e);
+         }
++        doUpdate(r, file);
+     }
+-
+-    protected abstract void doWrite(Resume r, File file) throws IOException;
+ 
+     @Override
+     protected Resume doGet(File file) {
+-        return null;
++        try {
++            return doRead(file);
++        } catch (IOException e) {
++            throw new StorageException("File read error", file.getName(), e);
++        }
+     }
+ 
+     @Override
+     protected void doDelete(File file) {
+-
++        if (!file.delete()) {
++            throw new StorageException("File delete error", file.getName());
++        }
+     }
+ 
+     @Override
+     protected List<Resume> doCopyAll() {
+-        return null;
++        File[] files = directory.listFiles();
++        if (files == null) {
++            throw new StorageException("Directory read error", null);
++        }
++        List<Resume> list = new ArrayList<>(files.length);
++        for (File file : files) {
++            list.add(doGet(file));
++        }
++        return list;
+     }
+ 
+     @Override
+     public void clear() {
+-
++        File[] files = directory.listFiles();
++        if (files != null) {
++            for (File file : files) {
++                doDelete(file);
++            }
++        }
+     }
+ 
+     @Override
+     public int size() {
+-        return 0;
++        String[] list = directory.list();
++        if (list == null) {
++            throw new StorageException("Directory read error", null);
++        }
++        return list.length;
+     }
+ }
+Index: src/ru/javawebinar/basejava/model/Resume.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/Resume.java	(revision f1b2a2b6534e40c5a59bb4731467283eafdeabf6)
++++ src/ru/javawebinar/basejava/model/Resume.java	(date 1558821693760)
+@@ -40,6 +40,14 @@
+         return sections.get(type);
+     }
+ 
++    public void addContact(ContactType type, String value) {
++        contacts.put(type, value);
++    }
++
++    public void addSection(SectionType type, Section section) {
++        sections.put(type, section);
++    }
++
+     @Override
+     public String toString() {
+         return uuid + '(' + fullName + ')';
+Index: src/ru/javawebinar/basejava/model/ListSection.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/ListSection.java	(revision f1b2a2b6534e40c5a59bb4731467283eafdeabf6)
++++ src/ru/javawebinar/basejava/model/ListSection.java	(date 1558821392994)
+@@ -1,5 +1,6 @@
+ package ru.javawebinar.basejava.model;
+ 
++import java.util.Arrays;
+ import java.util.List;
+ import java.util.Objects;
+ 
+@@ -12,6 +13,10 @@
+ 
+     private final List<String> items;
+ 
++    public ListSection(String... items) {
++        this(Arrays.asList(items));
++    }
++
+     public ListSection(List<String> items) {
+         Objects.requireNonNull(items, "items must not be null");
+         this.items = items;
+Index: src/ru/javawebinar/basejava/model/OrganizationSection.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/OrganizationSection.java	(revision f1b2a2b6534e40c5a59bb4731467283eafdeabf6)
++++ src/ru/javawebinar/basejava/model/OrganizationSection.java	(date 1558821563535)
+@@ -1,5 +1,6 @@
+ package ru.javawebinar.basejava.model;
+ 
++import java.util.Arrays;
+ import java.util.List;
+ import java.util.Objects;
+ 
+@@ -11,6 +12,10 @@
+ public class OrganizationSection extends Section {
+     private final List<Organization> organizations;
+ 
++    public OrganizationSection(Organization... organizations) {
++        this(Arrays.asList(organizations));
++    }
++
+     public OrganizationSection(List<Organization> organizations) {
+         Objects.requireNonNull(organizations, "organizations must not be null");
+         this.organizations = organizations;
+Index: src/ru/javawebinar/basejava/model/Organization.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/Organization.java	(revision f1b2a2b6534e40c5a59bb4731467283eafdeabf6)
++++ src/ru/javawebinar/basejava/model/Organization.java	(date 1558824005761)
+@@ -1,8 +1,15 @@
+ package ru.javawebinar.basejava.model;
+ 
+ import java.time.LocalDate;
++import java.time.Month;
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.List;
+ import java.util.Objects;
+ 
++import static ru.javawebinar.basejava.util.DateUtil.NOW;
++import static ru.javawebinar.basejava.util.DateUtil.of;
++
+ /**
+  * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 19.05.2019.
+  * @link https://github.com/vladmeh/basejava
+@@ -10,57 +17,108 @@
+ 
+ public class Organization {
+     private final Link homePage;
++    private List<Position> positions = new ArrayList<>();
++
++    public Organization(String name, String url, Position... positions) {
++        this(new Link(name, url), Arrays.asList(positions));
++    }
++
++    public Organization(Link homePage, List<Position> positions) {
++        this.homePage = homePage;
++        this.positions = positions;
++    }
++
++    @Override
++    public boolean equals(Object o) {
++        if (this == o) return true;
++        if (!(o instanceof Organization)) return false;
++
++        Organization that = (Organization) o;
++
++        if (!Objects.equals(homePage, that.homePage)) return false;
++        return Objects.equals(positions, that.positions);
++
++    }
++
++    @Override
++    public int hashCode() {
++        int result = homePage != null ? homePage.hashCode() : 0;
++        result = 31 * result + (positions != null ? positions.hashCode() : 0);
++        return result;
++    }
+ 
+-    private final LocalDate startDate;
+-    private final LocalDate endDate;
+-    private final String title;
+-    private final String description;
++    @Override
++    public String toString() {
++        return "Organization{" + homePage + ", " + positions + '}';
++    }
++
++    public static class Position {
++        private final LocalDate startDate;
++        private final LocalDate endDate;
++        private final String title;
++        private final String description;
+ 
+-    public Organization(String name, String url, LocalDate startDate, LocalDate endDate, String title, String description) {
+-        Objects.requireNonNull(startDate, "startDate must not be null");
+-        Objects.requireNonNull(endDate, "endDate must not be null");
+-        Objects.requireNonNull(title, "title must not be null");
++        public Position(int startYear, Month startMonth, String title, String description) {
++            this(of(startYear, startMonth), NOW, title, description);
++        }
++
++        public Position(int startYear, Month startMonth, int endYear, Month endMonth, String title, String description) {
++            this(of(startYear, startMonth), of(endYear, endMonth), title, description);
++        }
++
++        public Position(LocalDate startDate, LocalDate endDate, String title, String description) {
++            Objects.requireNonNull(startDate, "startDate must not be null");
++            Objects.requireNonNull(endDate, "endDate must not be null");
++            Objects.requireNonNull(title, "title must not be null");
+ 
+-        this.homePage = new Link(name, url);
+-        this.startDate = startDate;
+-        this.endDate = endDate;
+-        this.title = title;
+-        this.description = description;
+-    }
++            this.startDate = startDate;
++            this.endDate = endDate;
++            this.title = title;
++            this.description = description;
++        }
+ 
+-    @Override
+-    public boolean equals(Object o) {
+-        if (this == o) return true;
+-        if (o == null || getClass() != o.getClass()) return false;
++        public LocalDate getStartDate() {
++            return startDate;
++        }
++
++        public LocalDate getEndDate() {
++            return endDate;
++        }
++
++        public String getTitle() {
++            return title;
++        }
++
++        public String getDescription() {
++            return description;
++        }
++
++        @Override
++        public boolean equals(Object o) {
++            if (this == o) return true;
++            if (!(o instanceof Position)) return false;
+ 
+-        Organization that = (Organization) o;
++            Position position = (Position) o;
+ 
+-        if (!homePage.equals(that.homePage)) return false;
+-        if (!startDate.equals(that.startDate)) return false;
+-        if (!endDate.equals(that.endDate)) return false;
+-        if (!title.equals(that.title)) return false;
+-        return Objects.equals(description, that.description);
++            if (!getStartDate().equals(position.getStartDate())) return false;
++            if (!getEndDate().equals(position.getEndDate())) return false;
++            if (!getTitle().equals(position.getTitle())) return false;
++            return getDescription() != null ? getDescription().equals(position.getDescription()) : position.getDescription() == null;
+ 
+-    }
++        }
+ 
+-    @Override
+-    public int hashCode() {
+-        int result = homePage.hashCode();
+-        result = 31 * result + startDate.hashCode();
+-        result = 31 * result + endDate.hashCode();
+-        result = 31 * result + title.hashCode();
+-        result = 31 * result + (description != null ? description.hashCode() : 0);
+-        return result;
+-    }
++        @Override
++        public int hashCode() {
++            int result = getStartDate().hashCode();
++            result = 31 * result + getEndDate().hashCode();
++            result = 31 * result + getTitle().hashCode();
++            result = 31 * result + (getDescription() != null ? getDescription().hashCode() : 0);
++            return result;
++        }
+ 
+-    @Override
+-    public String toString() {
+-        return "Organization{" +
+-                "homePage=" + homePage +
+-                ", startDate=" + startDate +
+-                ", endDate=" + endDate +
+-                ", title='" + title + '\'' +
+-                ", description='" + description + '\'' +
+-                '}';
++        @Override
++        public String toString() {
++            return "Position(" + startDate + ',' + endDate + ',' + title + ',' + description + ')';
++        }
+     }
+ }
+Index: src/ru/javawebinar/basejava/MainFile.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/MainFile.java	(revision f1b2a2b6534e40c5a59bb4731467283eafdeabf6)
++++ src/ru/javawebinar/basejava/MainFile.java	(date 1558822637353)
+@@ -34,5 +34,23 @@
+         } catch (IOException e) {
+             throw new RuntimeException(e);
+         }
++
++        printDirectoryDeeply(dir);
++    }
++
++    // TODO: make pretty output
++    public static void printDirectoryDeeply(File dir) {
++        File[] files = dir.listFiles();
++
++        if (files != null) {
++            for (File file : files) {
++                if (file.isFile()) {
++                    System.out.println("File: " + file.getName());
++                } else if (file.isDirectory()) {
++                    System.out.println("Directory: " + file.getName());
++                    printDirectoryDeeply(file);
++                }
++            }
++        }
+     }
+ }
