@@ -1,0 +1,298 @@
+Index: src/ru/javawebinar/basejava/storage/ObjectStreamStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/ObjectStreamStorage.java	(date 1558992505056)
++++ src/ru/javawebinar/basejava/storage/ObjectStreamStorage.java	(date 1558992505056)
+@@ -0,0 +1,34 @@
++package ru.javawebinar.basejava.storage;
++
++import ru.javawebinar.basejava.exception.StorageException;
++import ru.javawebinar.basejava.model.Resume;
++
++import java.io.*;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 28.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class ObjectStreamStorage extends AbstractFileStorage {
++
++    protected ObjectStreamStorage(File directory) {
++        super(directory);
++    }
++
++    @Override
++    protected void doWrite(Resume r, OutputStream os) throws IOException {
++        try (ObjectOutputStream oos = new ObjectOutputStream(os)) {
++            oos.writeObject(r);
++        }
++    }
++
++    @Override
++    protected Resume doRead(InputStream is) throws IOException {
++        try (ObjectInputStream ois = new ObjectInputStream(is)) {
++            return (Resume) ois.readObject();
++        } catch (ClassNotFoundException e) {
++            throw new StorageException("Error read resume", null, e);
++        }
++    }
++}
+Index: test/ru/javawebinar/basejava/storage/AbstractStorageTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/AbstractStorageTest.java	(revision aa68305e25bcd3c29ccfcd3beee76b325ecd2076)
++++ test/ru/javawebinar/basejava/storage/AbstractStorageTest.java	(date 1558993381046)
+@@ -6,12 +6,12 @@
+ import ru.javawebinar.basejava.exception.NotExistStorageException;
+ import ru.javawebinar.basejava.model.*;
+ 
++import java.io.File;
+ import java.time.Month;
+ import java.util.Arrays;
+ import java.util.List;
+ 
+-import static org.junit.Assert.assertEquals;
+-import static org.junit.Assert.assertSame;
++import static org.junit.Assert.*;
+ 
+ /**
+  * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 05.05.2019.
+@@ -20,6 +20,8 @@
+ 
+ public abstract class AbstractStorageTest {
+ 
++    protected static final File STORAGE_DIR = new File("E:\\JavaRush\\basejava\\storage");
++
+     private static final String UUID_1 = "uuid1";
+     private static final String UUID_2 = "uuid2";
+     private static final String UUID_3 = "uuid3";
+@@ -109,7 +111,7 @@
+     public void update() {
+         Resume newResume = new Resume(UUID_1, "New Name");
+         storage.update(newResume);
+-        assertSame(newResume, storage.get(UUID_1));
++        assertEquals(newResume, storage.get(UUID_1));
+     }
+ 
+     @Test(expected = NotExistStorageException.class)
+Index: src/ru/javawebinar/basejava/model/Resume.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/Resume.java	(revision aa68305e25bcd3c29ccfcd3beee76b325ecd2076)
++++ src/ru/javawebinar/basejava/model/Resume.java	(date 1558993093623)
+@@ -1,5 +1,6 @@
+ package ru.javawebinar.basejava.model;
+ 
++import java.io.Serializable;
+ import java.util.EnumMap;
+ import java.util.Map;
+ import java.util.Objects;
+@@ -8,7 +9,8 @@
+ /**
+  * com.urise.webapp.model.ru.javawebinar.basejava.model.Resume class
+  */
+-public class Resume implements Comparable<Resume> {
++public class Resume implements Comparable<Resume>, Serializable {
++    private static final long serialVersionUID = 1L;
+ 
+     private final String uuid;
+     private final String fullName;
+Index: src/ru/javawebinar/basejava/model/Section.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/Section.java	(revision aa68305e25bcd3c29ccfcd3beee76b325ecd2076)
++++ src/ru/javawebinar/basejava/model/Section.java	(date 1558993120005)
+@@ -1,9 +1,11 @@
+ package ru.javawebinar.basejava.model;
+ 
++import java.io.Serializable;
++
+ /**
+  * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 19.05.2019.
+  * @link https://github.com/vladmeh/basejava
+  */
+ 
+-public abstract class Section {
++public abstract class Section implements Serializable {
+ }
+Index: src/ru/javawebinar/basejava/model/TextSection.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/TextSection.java	(revision aa68305e25bcd3c29ccfcd3beee76b325ecd2076)
++++ src/ru/javawebinar/basejava/model/TextSection.java	(date 1558993322869)
+@@ -8,6 +8,8 @@
+  */
+ 
+ public class TextSection extends Section {
++    private static final long serialVersionUID = 1L;
++
+     private final String content;
+ 
+     public TextSection(String content) {
+Index: src/ru/javawebinar/basejava/model/ListSection.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/ListSection.java	(revision aa68305e25bcd3c29ccfcd3beee76b325ecd2076)
++++ src/ru/javawebinar/basejava/model/ListSection.java	(date 1558993173980)
+@@ -10,6 +10,7 @@
+  */
+ 
+ public class ListSection extends Section {
++    private static final long serialVersionUID = 1L;
+ 
+     private final List<String> items;
+ 
+Index: test/ru/javawebinar/basejava/storage/AllStorageTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/AllStorageTest.java	(revision aa68305e25bcd3c29ccfcd3beee76b325ecd2076)
++++ test/ru/javawebinar/basejava/storage/AllStorageTest.java	(date 1558993416761)
+@@ -13,7 +13,8 @@
+         SortedArrayStorageTest.class,
+         ListStorageTest.class,
+         MapUuidStorageTest.class,
+-        MapResumeStorageTest.class
++        MapResumeStorageTest.class,
++        ObjectStreamStorageTest.class
+ })
+ public class AllStorageTest {
+ }
+Index: src/ru/javawebinar/basejava/model/OrganizationSection.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/OrganizationSection.java	(revision aa68305e25bcd3c29ccfcd3beee76b325ecd2076)
++++ src/ru/javawebinar/basejava/model/OrganizationSection.java	(date 1558993229954)
+@@ -10,6 +10,8 @@
+  */
+ 
+ public class OrganizationSection extends Section {
++    private static final long serialVersionUID = 1L;
++
+     private final List<Organization> organizations;
+ 
+     public OrganizationSection(Organization... organizations) {
+Index: src/ru/javawebinar/basejava/model/Organization.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/Organization.java	(revision aa68305e25bcd3c29ccfcd3beee76b325ecd2076)
++++ src/ru/javawebinar/basejava/model/Organization.java	(date 1558993202428)
+@@ -1,5 +1,6 @@
+ package ru.javawebinar.basejava.model;
+ 
++import java.io.Serializable;
+ import java.time.LocalDate;
+ import java.time.Month;
+ import java.util.ArrayList;
+@@ -15,7 +16,8 @@
+  * @link https://github.com/vladmeh/basejava
+  */
+ 
+-public class Organization {
++public class Organization implements Serializable {
++    private static final long serialVersionUID = 1L;
+     private final Link homePage;
+     private List<Position> positions = new ArrayList<>();
+ 
+@@ -52,7 +54,7 @@
+         return "Organization{" + homePage + ", " + positions + '}';
+     }
+ 
+-    public static class Position {
++    public static class Position implements Serializable{
+         private final LocalDate startDate;
+         private final LocalDate endDate;
+         private final String title;
+Index: src/ru/javawebinar/basejava/model/Link.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/Link.java	(revision aa68305e25bcd3c29ccfcd3beee76b325ecd2076)
++++ src/ru/javawebinar/basejava/model/Link.java	(date 1558993120049)
+@@ -1,5 +1,6 @@
+ package ru.javawebinar.basejava.model;
+ 
++import java.io.Serializable;
+ import java.util.Objects;
+ 
+ /**
+@@ -7,7 +8,9 @@
+  * @link https://github.com/vladmeh/basejava
+  */
+ 
+-public class Link {
++public class Link implements Serializable {
++    private static final long serialVersionUID = 1L;
++
+     private final String name;
+     private final String url;
+ 
+Index: src/ru/javawebinar/basejava/exception/StorageException.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/exception/StorageException.java	(revision aa68305e25bcd3c29ccfcd3beee76b325ecd2076)
++++ src/ru/javawebinar/basejava/exception/StorageException.java	(date 1558992583697)
+@@ -15,7 +15,7 @@
+         this.uuid = uuid;
+     }
+ 
+-    public StorageException(String message, String uuid, IOException e) {
++    public StorageException(String message, String uuid, Exception e) {
+         super(message, e);
+         this.uuid = uuid;
+     }
+Index: .gitignore
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .gitignore	(revision aa68305e25bcd3c29ccfcd3beee76b325ecd2076)
++++ .gitignore	(date 1558993854400)
+@@ -3,3 +3,4 @@
+ *.iml
+ log
+ lib
++/storage/
+Index: test/ru/javawebinar/basejava/storage/ObjectStreamStorageTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/ObjectStreamStorageTest.java	(date 1558992814191)
++++ test/ru/javawebinar/basejava/storage/ObjectStreamStorageTest.java	(date 1558992814191)
+@@ -0,0 +1,13 @@
++package ru.javawebinar.basejava.storage;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 28.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class ObjectStreamStorageTest extends AbstractStorageTest {
++
++    public ObjectStreamStorageTest() {
++        super(new ObjectStreamStorage(STORAGE_DIR));
++    }
++}
+\ No newline at end of file

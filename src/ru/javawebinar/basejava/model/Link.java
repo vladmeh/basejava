@@ -1,5 +1,6 @@
 package ru.javawebinar.basejava.model;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -7,7 +8,9 @@ import java.util.Objects;
  * @link https://github.com/vladmeh/basejava
  */
 
-public class Link {
+public class Link implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private final String name;
     private final String url;
 

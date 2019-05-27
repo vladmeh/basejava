@@ -10,6 +10,7 @@ import java.util.Objects;
  */
 
 public class ListSection extends Section {
+    private static final long serialVersionUID = 1L;
 
     private final List<String> items;
 
