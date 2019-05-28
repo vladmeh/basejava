@@ -35,20 +35,23 @@ public class MainFile {
             throw new RuntimeException(e);
         }
 
-        printDirectoryDeeply(dir);
+        printDirectoryDeeply(dir, 0);
     }
 
     // TODO: make pretty output
-    public static void printDirectoryDeeply(File dir) {
+    private static void printDirectoryDeeply(File dir, int level) {
         File[] files = dir.listFiles();
 
         if (files != null) {
             for (File file : files) {
+                for (int i = 0; i < level; i++)
+                    System.out.print("\t");
+
                 if (file.isFile()) {
                     System.out.println("File: " + file.getName());
                 } else if (file.isDirectory()) {
                     System.out.println("Directory: " + file.getName());
-                    printDirectoryDeeply(file);
+                    printDirectoryDeeply(file, level +1);
                 }
             }
         }
