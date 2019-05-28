@@ -58,6 +58,7 @@ public abstract class AbstractPathStorage extends AbstractStorage<Path> {
         } catch (IOException e) {
             throw new StorageException("Couldn't create file " + path, getFileName(path), e);
         }
+        doUpdate(r, path);
     }
 
     @Override
