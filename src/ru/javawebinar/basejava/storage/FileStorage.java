@@ -13,15 +13,12 @@ import java.util.Objects;
  * @link https://github.com/vladmeh/basejava
  */
 
-public abstract class AbstractFileStorage extends AbstractStorage<File> {
+public class FileStorage extends AbstractStorage<File> {
     private File directory;
 
-    protected abstract void doWrite(Resume r, OutputStream file) throws IOException;
+    private Strategy strategy;
 
-    protected abstract Resume doRead(InputStream file) throws IOException;
-
-
-    public AbstractFileStorage(File directory) {
+    public FileStorage(File directory, Strategy strategy) {
         Objects.requireNonNull(directory, "directory must not be null");
         if (!directory.isDirectory()) {
             throw new IllegalArgumentException(directory.getAbsolutePath() + " is not directory");
@@ -31,29 +28,30 @@ public abstract class AbstractFileStorage extends AbstractStorage<File> {
         }
 
         this.directory = directory;
+        this.strategy = strategy;
     }
 
     @Override
-    protected File getSearchKey(String uuid) {
+    public File getSearchKey(String uuid) {
         return new File(directory, uuid);
     }
 
     @Override
-    protected boolean isExist(File file) {
+    public boolean isExist(File file) {
         return file.exists();
     }
 
     @Override
-    protected void doUpdate(Resume r, File file) {
+    public void doUpdate(Resume r, File file) {
         try {
-            doWrite(r, new BufferedOutputStream(new FileOutputStream(file)));
+            strategy.doWrite(r, new BufferedOutputStream(new FileOutputStream(file)));
         } catch (IOException e) {
             throw new StorageException("File write error", r.getUuid(), e);
         }
     }
 
     @Override
-    protected void doSave(Resume r, File file) {
+    public void doSave(Resume r, File file) {
         try {
             file.createNewFile();
         } catch (IOException e) {
@@ -63,23 +61,23 @@ public abstract class AbstractFileStorage extends AbstractStorage<File> {
     }
 
     @Override
-    protected Resume doGet(File file) {
+    public Resume doGet(File file) {
         try {
-            return doRead(new BufferedInputStream(new FileInputStream(file)));
+            return strategy.doRead(new BufferedInputStream(new FileInputStream(file)));
         } catch (IOException e) {
             throw new StorageException("File read error", file.getName(), e);
         }
     }
 
     @Override
-    protected void doDelete(File file) {
+    public void doDelete(File file) {
         if (!file.delete()) {
             throw new StorageException("File delete error", file.getName());
         }
     }
 
     @Override
-    protected List<Resume> doCopyAll() {
+    public List<Resume> doCopyAll() {
         File[] files = directory.listFiles();
         if (files == null) {
             throw new StorageException("Directory read error", null);

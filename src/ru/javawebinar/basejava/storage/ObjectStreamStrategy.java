@@ -6,25 +6,21 @@ import ru.javawebinar.basejava.model.Resume;
 import java.io.*;
 
 /**
- * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 28.05.2019.
+ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 02.06.2019.
  * @link https://github.com/vladmeh/basejava
  */
 
-public class ObjectStreamStorage extends AbstractFileStorage {
-
-    protected ObjectStreamStorage(File directory) {
-        super(directory);
-    }
+public class ObjectStreamStrategy implements Strategy {
 
     @Override
-    protected void doWrite(Resume r, OutputStream os) throws IOException {
+    public void doWrite(Resume r, OutputStream os) throws IOException {
         try (ObjectOutputStream oos = new ObjectOutputStream(os)) {
             oos.writeObject(r);
         }
     }
 
     @Override
-    protected Resume doRead(InputStream is) throws IOException {
+    public Resume doRead(InputStream is) throws IOException {
         try (ObjectInputStream ois = new ObjectInputStream(is)) {
             return (Resume) ois.readObject();
         } catch (ClassNotFoundException e) {

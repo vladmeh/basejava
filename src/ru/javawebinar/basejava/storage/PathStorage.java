@@ -3,7 +3,9 @@ package ru.javawebinar.basejava.storage;
 import ru.javawebinar.basejava.exception.StorageException;
 import ru.javawebinar.basejava.model.Resume;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,20 +19,19 @@ import java.util.stream.Stream;
  * @link https://github.com/vladmeh/basejava
  */
 
-public abstract class AbstractPathStorage extends AbstractStorage<Path> {
+public class PathStorage extends AbstractStorage<Path> {
     private Path directory;
+    private Strategy strategy;
 
-    public AbstractPathStorage(String dir) {
-        directory = Paths.get(dir);
+    public PathStorage(String dir, Strategy strategy) {
+        this.directory = Paths.get(dir);
+        this.strategy = strategy;
+
         Objects.requireNonNull(directory, "directory must not be null");
         if (!Files.isDirectory(directory) || !Files.isWritable(directory)) {
             throw new IllegalArgumentException(dir + " is not directory or is not writable");
         }
     }
-
-    protected abstract void doWrite(Resume r, OutputStream file) throws IOException;
-
-    protected abstract Resume doRead(InputStream file) throws IOException;
 
     @Override
     protected Path getSearchKey(String uuid) {
@@ -45,7 +46,7 @@ public abstract class AbstractPathStorage extends AbstractStorage<Path> {
     @Override
     protected void doUpdate(Resume r, Path path) {
         try {
-            doWrite(r, new BufferedOutputStream(Files.newOutputStream(path)));
+            strategy.doWrite(r, new BufferedOutputStream(Files.newOutputStream(path)));
         } catch (IOException e) {
             throw new StorageException("File write error", r.getUuid(), e);
         }
@@ -64,7 +65,7 @@ public abstract class AbstractPathStorage extends AbstractStorage<Path> {
     @Override
     protected Resume doGet(Path path) {
         try {
-            return doRead(new BufferedInputStream(Files.newInputStream(path)));
+            return strategy.doRead(new BufferedInputStream(Files.newInputStream(path)));
         } catch (IOException e) {
             throw new StorageException("File read error", getFileName(path), e);
         }
