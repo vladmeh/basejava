@@ -1,0 +1,231 @@
+Index: src/ru/javawebinar/basejava/storage/ObjectStreamPathStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/ObjectStreamPathStorage.java	(date 1559512548051)
++++ src/ru/javawebinar/basejava/storage/ObjectStreamPathStorage.java	(date 1559512548051)
+@@ -0,0 +1,34 @@
++package ru.javawebinar.basejava.storage;
++
++import ru.javawebinar.basejava.exception.StorageException;
++import ru.javawebinar.basejava.model.Resume;
++
++import java.io.*;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 28.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class ObjectStreamPathStorage extends AbstractPathStorage {
++
++    protected ObjectStreamPathStorage(String directory) {
++        super(directory);
++    }
++
++    @Override
++    protected void doWrite(Resume r, OutputStream os) throws IOException {
++        try (ObjectOutputStream oos = new ObjectOutputStream(os)) {
++            oos.writeObject(r);
++        }
++    }
++
++    @Override
++    protected Resume doRead(InputStream is) throws IOException {
++        try (ObjectInputStream ois = new ObjectInputStream(is)) {
++            return (Resume) ois.readObject();
++        } catch (ClassNotFoundException e) {
++            throw new StorageException("Error read resume", null, e);
++        }
++    }
++}
+Index: test/ru/javawebinar/basejava/storage/ObjectStreamPathStorageTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/ObjectStreamPathStorageTest.java	(date 1559512548015)
++++ test/ru/javawebinar/basejava/storage/ObjectStreamPathStorageTest.java	(date 1559512548015)
+@@ -0,0 +1,13 @@
++package ru.javawebinar.basejava.storage;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 28.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class ObjectStreamPathStorageTest extends AbstractStorageTest {
++
++    public ObjectStreamPathStorageTest() {
++        super(new ObjectStreamPathStorage(STORAGE_DIR.getAbsolutePath()));
++    }
++}
+\ No newline at end of file
+Index: src/ru/javawebinar/basejava/exception/StorageException.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/exception/StorageException.java	(date 1559512736000)
++++ src/ru/javawebinar/basejava/exception/StorageException.java	(date 1559512182938)
+@@ -1,5 +1,7 @@
+ package ru.javawebinar.basejava.exception;
+ 
++import java.io.IOException;
++
+ /**
+  * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 04.05.2019.
+  * @link https://github.com/vladmeh/basejava
+@@ -18,6 +20,14 @@
+         this.uuid = uuid;
+     }
+ 
++    public StorageException(String message, Exception e) {
++        this(message, null, e);
++    }
++
++    public StorageException(String message) {
++        this(message, null, null);
++    }
++
+     public String getUuid() {
+         return uuid;
+     }
+Index: src/ru/javawebinar/basejava/storage/AbstractFileStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/AbstractFileStorage.java	(date 1559512736000)
++++ src/ru/javawebinar/basejava/storage/AbstractFileStorage.java	(date 1559512182986)
+@@ -82,7 +82,7 @@
+     protected List<Resume> doCopyAll() {
+         File[] files = directory.listFiles();
+         if (files == null) {
+-            throw new StorageException("Directory read error", null);
++            throw new StorageException("Directory read error");
+         }
+         List<Resume> list = new ArrayList<>(files.length);
+         for (File file : files) {
+@@ -105,7 +105,7 @@
+     public int size() {
+         String[] list = directory.list();
+         if (list == null) {
+-            throw new StorageException("Directory read error", null);
++            throw new StorageException("Directory read error");
+         }
+         return list.length;
+     }
+Index: src/ru/javawebinar/basejava/storage/AbstractPathStorage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/AbstractPathStorage.java	(date 1559512736000)
++++ src/ru/javawebinar/basejava/storage/AbstractPathStorage.java	(date 1559512434834)
+@@ -3,14 +3,14 @@
+ import ru.javawebinar.basejava.exception.StorageException;
+ import ru.javawebinar.basejava.model.Resume;
+ 
+-import java.io.IOException;
+-import java.io.InputStream;
+-import java.io.OutputStream;
++import java.io.*;
+ import java.nio.file.Files;
+ import java.nio.file.Path;
+ import java.nio.file.Paths;
+ import java.util.List;
+ import java.util.Objects;
++import java.util.stream.Collectors;
++import java.util.stream.Stream;
+ 
+ /**
+  * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 28.05.2019.
+@@ -34,37 +34,54 @@
+ 
+     @Override
+     protected Path getSearchKey(String uuid) {
+-        return null;
++        return directory.resolve(uuid);
+     }
+ 
+     @Override
+-    protected boolean isExist(Path searchKey) {
+-        return false;
++    protected boolean isExist(Path path) {
++        return Files.isRegularFile(path);
+     }
+ 
+     @Override
+-    protected void doUpdate(Resume r, Path searchKey) {
+-
++    protected void doUpdate(Resume r, Path path) {
++        try {
++            doWrite(r, new BufferedOutputStream(Files.newOutputStream(path)));
++        } catch (IOException e) {
++            throw new StorageException("File write error", r.getUuid(), e);
++        }
+     }
+ 
+     @Override
+-    protected void doSave(Resume r, Path searchKey) {
+-
++    protected void doSave(Resume r, Path path) {
++        try {
++            Files.createFile(path);
++        } catch (IOException e) {
++            throw new StorageException("Couldn't create path " + path, getFileName(path), e);
++        }
++        doUpdate(r, path);
+     }
+ 
+     @Override
+-    protected Resume doGet(Path searchKey) {
+-        return null;
++    protected Resume doGet(Path path) {
++        try {
++            return doRead(new BufferedInputStream(Files.newInputStream(path)));
++        } catch (IOException e) {
++            throw new StorageException("File read error", getFileName(path), e);
++        }
+     }
+ 
+     @Override
+-    protected void doDelete(Path searchKey) {
+-
++    protected void doDelete(Path path) {
++        try {
++            Files.delete(path);
++        } catch (IOException e) {
++            throw new StorageException("Path delete error", getFileName(path), e);
++        }
+     }
+ 
+     @Override
+     protected List<Resume> doCopyAll() {
+-        return null;
++        return getFilesList().map(this::doGet).collect(Collectors.toList());
+     }
+ 
+     @Override
+@@ -78,6 +95,18 @@
+ 
+     @Override
+     public int size() {
+-        return 0;
++        return (int) getFilesList().count();
++    }
++
++    private String getFileName(Path path) {
++        return path.getFileName().toString();
++    }
++
++    private Stream<Path> getFilesList() {
++        try {
++            return Files.list(directory);
++        } catch (IOException e) {
++            throw new StorageException("Directory read error", e);
++        }
+     }
+ }
