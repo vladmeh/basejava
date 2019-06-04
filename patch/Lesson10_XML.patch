@@ -1,0 +1,427 @@
+Index: test/ru/javawebinar/basejava/storage/XmlPathSerializerTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/XmlPathSerializerTest.java	(date 1559682803414)
++++ test/ru/javawebinar/basejava/storage/XmlPathSerializerTest.java	(date 1559682803414)
+@@ -0,0 +1,15 @@
++package ru.javawebinar.basejava.storage;
++
++import ru.javawebinar.basejava.storage.serializer.XmlStreamSerializer;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 05.06.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class XmlPathSerializerTest extends AbstractStorageTest {
++
++    public XmlPathSerializerTest() {
++        super(new PathStorage(STORAGE_DIR.getAbsolutePath(), new XmlStreamSerializer()));
++    }
++}
+\ No newline at end of file
+Index: src/ru/javawebinar/basejava/util/XmlParser.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/util/XmlParser.java	(date 1559681768703)
++++ src/ru/javawebinar/basejava/util/XmlParser.java	(date 1559681768703)
+@@ -0,0 +1,49 @@
++package ru.javawebinar.basejava.util;
++
++import javax.xml.bind.JAXBContext;
++import javax.xml.bind.JAXBException;
++import javax.xml.bind.Marshaller;
++import javax.xml.bind.Unmarshaller;
++import java.io.Reader;
++import java.io.Writer;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 04.06.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class XmlParser {
++    private final Marshaller marshaller;
++    private final Unmarshaller unmarshaller;
++
++    public XmlParser(Class... classesToBeBound) {
++        try {
++            JAXBContext ctx = JAXBContext.newInstance(classesToBeBound);
++
++            marshaller = ctx.createMarshaller();
++            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
++            marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
++//            marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
++
++            unmarshaller = ctx.createUnmarshaller();
++        } catch (JAXBException e) {
++            throw new IllegalStateException(e);
++        }
++    }
++
++    public <T> T unmarshall(Reader reader) {
++        try {
++            return (T) unmarshaller.unmarshal(reader);
++        } catch (JAXBException e) {
++            throw new IllegalStateException(e);
++        }
++    }
++
++    public void marshall(Object instance, Writer writer) {
++        try {
++            marshaller.marshal(instance, writer);
++        } catch (JAXBException e) {
++            throw new IllegalStateException(e);
++        }
++    }
++}
+Index: src/ru/javawebinar/basejava/storage/serializer/XmlStreamSerializer.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/serializer/XmlStreamSerializer.java	(date 1559682434612)
++++ src/ru/javawebinar/basejava/storage/serializer/XmlStreamSerializer.java	(date 1559682434612)
+@@ -0,0 +1,42 @@
++package ru.javawebinar.basejava.storage.serializer;
++
++import ru.javawebinar.basejava.model.*;
++import ru.javawebinar.basejava.util.XmlParser;
++
++import java.io.*;
++import java.nio.charset.StandardCharsets;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 04.06.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class XmlStreamSerializer implements StreamSerializer {
++    private XmlParser xmlParser;
++
++    public XmlStreamSerializer() {
++        xmlParser = new XmlParser(
++                Resume.class,
++                Organization.class,
++                Link.class,
++                OrganizationSection.class,
++                TextSection.class,
++                ListSection.class,
++                Organization.Position.class
++        );
++    }
++
++    @Override
++    public void doWrite(Resume r, OutputStream os) throws IOException {
++        try (Writer w = new OutputStreamWriter(os, StandardCharsets.UTF_8)) {
++            xmlParser.marshall(r, w);
++        }
++    }
++
++    @Override
++    public Resume doRead(InputStream is) throws IOException {
++        try (Reader r = new InputStreamReader(is, StandardCharsets.UTF_8)) {
++            return xmlParser.unmarshall(r);
++        }
++    }
++}
+Index: src/ru/javawebinar/basejava/util/LocalDateAdapter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/util/LocalDateAdapter.java	(date 1559681873475)
++++ src/ru/javawebinar/basejava/util/LocalDateAdapter.java	(date 1559681873475)
+@@ -0,0 +1,21 @@
++package ru.javawebinar.basejava.util;
++
++import javax.xml.bind.annotation.adapters.XmlAdapter;
++import java.time.LocalDate;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 04.06.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class LocalDateAdapter extends XmlAdapter<String, LocalDate> {
++    @Override
++    public LocalDate unmarshal(String str) throws Exception {
++        return LocalDate.parse(str);
++    }
++
++    @Override
++    public String marshal(LocalDate ld) throws Exception {
++        return ld.toString();
++    }
++}
+Index: src/ru/javawebinar/basejava/model/Resume.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/Resume.java	(date 1559593525000)
++++ src/ru/javawebinar/basejava/model/Resume.java	(date 1559683380445)
+@@ -1,5 +1,8 @@
+ package ru.javawebinar.basejava.model;
+ 
++import javax.xml.bind.annotation.XmlAccessType;
++import javax.xml.bind.annotation.XmlAccessorType;
++import javax.xml.bind.annotation.XmlRootElement;
+ import java.io.Serializable;
+ import java.util.EnumMap;
+ import java.util.Map;
+@@ -9,14 +12,17 @@
+ /**
+  * com.urise.webapp.model.ru.javawebinar.basejava.model.Resume class
+  */
++@XmlRootElement
++@XmlAccessorType(XmlAccessType.FIELD)
+ public class Resume implements Comparable<Resume>, Serializable {
+     private static final long serialVersionUID = 1L;
+-
+-    private final String uuid;
+-    private final String fullName;
+-
+     private final Map<ContactType, String> contacts = new EnumMap<>(ContactType.class);
+     private final Map<SectionType, Section> sections = new EnumMap<>(SectionType.class);
++    private String uuid;
++    private String fullName;
++
++    public Resume() {
++    }
+ 
+     public Resume(String fullName) {
+         this(UUID.randomUUID().toString(), fullName);
+@@ -59,19 +65,16 @@
+     public boolean equals(Object o) {
+         if (this == o) return true;
+         if (!(o instanceof Resume)) return false;
+-
+         Resume resume = (Resume) o;
+-
+-        if (!getUuid().equals(resume.getUuid())) return false;
+-        return fullName.equals(resume.fullName);
+-
++        return Objects.equals(uuid, resume.uuid) &&
++                Objects.equals(fullName, resume.fullName) &&
++                Objects.equals(contacts, resume.contacts) &&
++                Objects.equals(sections, resume.sections);
+     }
+ 
+     @Override
+     public int hashCode() {
+-        int result = getUuid().hashCode();
+-        result = 31 * result + fullName.hashCode();
+-        return result;
++        return Objects.hash(uuid, fullName, contacts, sections);
+     }
+ 
+     @Override
+Index: src/ru/javawebinar/basejava/model/Section.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/Section.java	(date 1559593525000)
++++ src/ru/javawebinar/basejava/model/Section.java	(date 1559683447030)
+@@ -1,11 +1,13 @@
+ package ru.javawebinar.basejava.model;
+ 
++import javax.xml.bind.annotation.XmlAccessType;
++import javax.xml.bind.annotation.XmlAccessorType;
+ import java.io.Serializable;
+ 
+ /**
+  * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 19.05.2019.
+  * @link https://github.com/vladmeh/basejava
+  */
+-
++@XmlAccessorType(XmlAccessType.FIELD)
+ public abstract class Section implements Serializable {
+ }
+Index: src/ru/javawebinar/basejava/model/TextSection.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/TextSection.java	(date 1559593525000)
++++ src/ru/javawebinar/basejava/model/TextSection.java	(date 1559683830949)
+@@ -10,7 +10,10 @@
+ public class TextSection extends Section {
+     private static final long serialVersionUID = 1L;
+ 
+-    private final String content;
++    private String content;
++
++    public TextSection() {
++    }
+ 
+     public TextSection(String content) {
+         Objects.requireNonNull(content, "content must not be null");
+Index: src/ru/javawebinar/basejava/model/ListSection.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/ListSection.java	(date 1559593525000)
++++ src/ru/javawebinar/basejava/model/ListSection.java	(date 1559683831011)
+@@ -12,7 +12,10 @@
+ public class ListSection extends Section {
+     private static final long serialVersionUID = 1L;
+ 
+-    private final List<String> items;
++    private List<String> items;
++
++    public ListSection() {
++    }
+ 
+     public ListSection(String... items) {
+         this(Arrays.asList(items));
+Index: test/ru/javawebinar/basejava/storage/AllStorageTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/AllStorageTest.java	(date 1559593525000)
++++ test/ru/javawebinar/basejava/storage/AllStorageTest.java	(date 1559683872572)
+@@ -16,6 +16,7 @@
+         MapResumeStorageTest.class,
+         ObjectFileStorageTest.class,
+         ObjectPathStorageTest.class,
++        XmlPathSerializerTest.class
+ })
+ public class AllStorageTest {
+ }
+Index: src/ru/javawebinar/basejava/model/OrganizationSection.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/OrganizationSection.java	(date 1559593525000)
++++ src/ru/javawebinar/basejava/model/OrganizationSection.java	(date 1559684233972)
+@@ -12,7 +12,10 @@
+ public class OrganizationSection extends Section {
+     private static final long serialVersionUID = 1L;
+ 
+-    private final List<Organization> organizations;
++    private List<Organization> organizations;
++
++    public OrganizationSection() {
++    }
+ 
+     public OrganizationSection(Organization... organizations) {
+         this(Arrays.asList(organizations));
+Index: src/ru/javawebinar/basejava/storage/serializer/StreamSerializer.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/serializer/StreamSerializer.java	(date 1559593525000)
++++ src/ru/javawebinar/basejava/storage/serializer/StreamSerializer.java	(date 1559682386855)
+@@ -13,8 +13,8 @@
+ 
+ public interface StreamSerializer {
+ 
+-    void doWrite(Resume r, OutputStream file) throws IOException;
++    void doWrite(Resume r, OutputStream os) throws IOException;
+ 
+-    Resume doRead(InputStream file) throws IOException;
++    Resume doRead(InputStream is) throws IOException;
+ 
+ }
+Index: src/ru/javawebinar/basejava/model/Organization.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/Organization.java	(date 1559593525000)
++++ src/ru/javawebinar/basejava/model/Organization.java	(date 1559683831043)
+@@ -1,5 +1,10 @@
+ package ru.javawebinar.basejava.model;
+ 
++import ru.javawebinar.basejava.util.LocalDateAdapter;
++
++import javax.xml.bind.annotation.XmlAccessType;
++import javax.xml.bind.annotation.XmlAccessorType;
++import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+ import java.io.Serializable;
+ import java.time.LocalDate;
+ import java.time.Month;
+@@ -15,12 +20,15 @@
+  * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 19.05.2019.
+  * @link https://github.com/vladmeh/basejava
+  */
+-
++@XmlAccessorType(XmlAccessType.FIELD)
+ public class Organization implements Serializable {
+     private static final long serialVersionUID = 1L;
+-    private final Link homePage;
++    private Link homePage;
+     private List<Position> positions = new ArrayList<>();
+ 
++    public Organization() {
++    }
++
+     public Organization(String name, String url, Position... positions) {
+         this(new Link(name, url), Arrays.asList(positions));
+     }
+@@ -54,11 +62,17 @@
+         return "Organization{" + homePage + ", " + positions + '}';
+     }
+ 
++    @XmlAccessorType(XmlAccessType.FIELD)
+     public static class Position implements Serializable {
+-        private final LocalDate startDate;
+-        private final LocalDate endDate;
+-        private final String title;
+-        private final String description;
++        @XmlJavaTypeAdapter(LocalDateAdapter.class)
++        private LocalDate startDate;
++        @XmlJavaTypeAdapter(LocalDateAdapter.class)
++        private LocalDate endDate;
++        private String title;
++        private String description;
++
++        public Position() {
++        }
+ 
+         public Position(int startYear, Month startMonth, String title, String description) {
+             this(of(startYear, startMonth), NOW, title, description);
+Index: src/ru/javawebinar/basejava/model/Link.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/Link.java	(date 1559593525000)
++++ src/ru/javawebinar/basejava/model/Link.java	(date 1559683446952)
+@@ -1,5 +1,7 @@
+ package ru.javawebinar.basejava.model;
+ 
++import javax.xml.bind.annotation.XmlAccessType;
++import javax.xml.bind.annotation.XmlAccessorType;
+ import java.io.Serializable;
+ import java.util.Objects;
+ 
+@@ -7,12 +9,15 @@
+  * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 19.05.2019.
+  * @link https://github.com/vladmeh/basejava
+  */
+-
++@XmlAccessorType(XmlAccessType.FIELD)
+ public class Link implements Serializable {
+     private static final long serialVersionUID = 1L;
+ 
+-    private final String name;
+-    private final String url;
++    private String name;
++    private String url;
++
++    public Link() {
++    }
+ 
+     public Link(String name, String url) {
+         Objects.requireNonNull(name, "name must not be null");
