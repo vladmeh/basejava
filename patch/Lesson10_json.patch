@@ -1,0 +1,159 @@
+Index: src/ru/javawebinar/basejava/storage/serializer/JsonStreamSerializer.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/serializer/JsonStreamSerializer.java	(date 1559942310413)
++++ src/ru/javawebinar/basejava/storage/serializer/JsonStreamSerializer.java	(date 1559942310413)
+@@ -0,0 +1,28 @@
++package ru.javawebinar.basejava.storage.serializer;
++
++import ru.javawebinar.basejava.model.Resume;
++import ru.javawebinar.basejava.util.JsonParser;
++
++import java.io.*;
++import java.nio.charset.StandardCharsets;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 08.06.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class JsonStreamSerializer implements StreamSerializer {
++    @Override
++    public void doWrite(Resume r, OutputStream os) throws IOException {
++        try (Writer writer = new OutputStreamWriter(os, StandardCharsets.UTF_8)) {
++            JsonParser.write(r, writer);
++        }
++    }
++
++    @Override
++    public Resume doRead(InputStream is) throws IOException {
++        try (Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
++            return JsonParser.read(reader, Resume.class);
++        }
++    }
++}
+Index: src/ru/javawebinar/basejava/util/JsonParser.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/util/JsonParser.java	(date 1559943260317)
++++ src/ru/javawebinar/basejava/util/JsonParser.java	(date 1559943260317)
+@@ -0,0 +1,27 @@
++package ru.javawebinar.basejava.util;
++
++import com.google.gson.Gson;
++import com.google.gson.GsonBuilder;
++import ru.javawebinar.basejava.model.Section;
++
++import java.io.Reader;
++import java.io.Writer;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 08.06.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class JsonParser {
++    private static Gson GSON = new GsonBuilder()
++            .registerTypeAdapter(Section.class, new JsonSectionAdapter())
++            .create();
++
++    public static <T> T read(Reader reader, Class<T> clazz) {
++        return GSON.fromJson(reader, clazz);
++    }
++
++    public static <T> void write(T object, Writer writer) {
++        GSON.toJson(object, writer);
++    }
++}
+Index: src/ru/javawebinar/basejava/util/JsonSectionAdapter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/util/JsonSectionAdapter.java	(date 1559943260348)
++++ src/ru/javawebinar/basejava/util/JsonSectionAdapter.java	(date 1559943260348)
+@@ -0,0 +1,39 @@
++package ru.javawebinar.basejava.util;
++
++import com.google.gson.*;
++
++import java.lang.reflect.Type;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 08.06.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class JsonSectionAdapter<T> implements JsonSerializer<T>, JsonDeserializer<T> {
++    private static final String CLASSNAME = "CLASSNAME";
++    private static final String INSTANCE = "INSTANCE";
++
++    @Override
++    public T deserialize(JsonElement json, Type type, JsonDeserializationContext context) throws JsonParseException {
++        JsonObject jsonObject = json.getAsJsonObject();
++        JsonPrimitive prim = (JsonPrimitive) jsonObject.get(CLASSNAME);
++        String className = prim.getAsString();
++
++        try {
++            Class clazz = Class.forName(className);
++            return context.deserialize(jsonObject.get(INSTANCE), clazz);
++        } catch (ClassNotFoundException e) {
++            throw new JsonParseException(e.getMessage());
++        }
++    }
++
++
++    @Override
++    public JsonElement serialize(T section, Type type, JsonSerializationContext context) {
++        JsonObject retValue = new JsonObject();
++        retValue.addProperty(CLASSNAME, section.getClass().getName());
++        JsonElement elem = context.serialize(section);
++        retValue.add(INSTANCE, elem);
++        return retValue;
++    }
++}
+Index: test/ru/javawebinar/basejava/storage/JsonPathSerializerTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/JsonPathSerializerTest.java	(date 1559942385164)
++++ test/ru/javawebinar/basejava/storage/JsonPathSerializerTest.java	(date 1559942385164)
+@@ -0,0 +1,15 @@
++package ru.javawebinar.basejava.storage;
++
++import ru.javawebinar.basejava.storage.serializer.JsonStreamSerializer;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 05.06.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class JsonPathSerializerTest extends AbstractStorageTest {
++
++    public JsonPathSerializerTest() {
++        super(new PathStorage(STORAGE_DIR.getAbsolutePath(), new JsonStreamSerializer()));
++    }
++}
+\ No newline at end of file
+Index: test/ru/javawebinar/basejava/storage/AllStorageTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/AllStorageTest.java	(revision 287f485c0d86af045adafcb6554169c52cf2b8a9)
++++ test/ru/javawebinar/basejava/storage/AllStorageTest.java	(date 1559942385120)
+@@ -16,7 +16,8 @@
+         MapResumeStorageTest.class,
+         ObjectFileStorageTest.class,
+         ObjectPathStorageTest.class,
+-        XmlPathSerializerTest.class
++        XmlPathSerializerTest.class,
++        JsonPathSerializerTest.class,
+ })
+ public class AllStorageTest {
+ }
