@@ -1,0 +1,122 @@
+Index: test/ru/javawebinar/basejava/storage/DataPathStorageTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/DataPathStorageTest.java	(date 1560115140201)
++++ test/ru/javawebinar/basejava/storage/DataPathStorageTest.java	(date 1560115140201)
+@@ -0,0 +1,15 @@
++package ru.javawebinar.basejava.storage;
++
++import ru.javawebinar.basejava.storage.serializer.DataStreamSerializer;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 28.05.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class DataPathStorageTest extends AbstractStorageTest {
++
++    public DataPathStorageTest() {
++        super(new PathStorage(STORAGE_DIR.getAbsolutePath(), new DataStreamSerializer()));
++    }
++}
+\ No newline at end of file
+Index: src/ru/javawebinar/basejava/storage/serializer/DataStreamSerializer.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/storage/serializer/DataStreamSerializer.java	(date 1560114899250)
++++ src/ru/javawebinar/basejava/storage/serializer/DataStreamSerializer.java	(date 1560114899250)
+@@ -0,0 +1,45 @@
++package ru.javawebinar.basejava.storage.serializer;
++
++import ru.javawebinar.basejava.model.ContactType;
++import ru.javawebinar.basejava.model.Resume;
++
++import java.io.*;
++import java.util.Map;
++
++/**
++ * @author Vladimir Mikhaylov <vladmeh@gmail.com> on 10.06.2019.
++ * @link https://github.com/vladmeh/basejava
++ */
++
++public class DataStreamSerializer implements StreamSerializer{
++    @Override
++    public void doWrite(Resume r, OutputStream os) throws IOException {
++        try(DataOutputStream dos = new DataOutputStream(os)){
++            dos.writeUTF(r.getUuid());
++            dos.writeUTF(r.getFullName());
++            Map<ContactType, String> contacts = r.getContacts();
++            dos.writeInt(contacts.size());
++            for (Map.Entry<ContactType, String> entry : contacts.entrySet()) {
++                dos.writeUTF(entry.getKey().name());
++                dos.writeUTF(entry.getValue());
++            }
++            // TODO implements sections
++        }
++    }
++
++    @Override
++    public Resume doRead(InputStream is) throws IOException {
++        try(DataInputStream dis = new DataInputStream(is)){
++            String uuid = dis.readUTF();
++            String fullName = dis.readUTF();
++            Resume resume = new Resume(uuid, fullName);
++            int size = dis.readInt();
++            for (int i = 0; i < size; i++) {
++                resume.addContact(ContactType.valueOf(dis.readUTF()), dis.readUTF());
++            }
++            // TODO implements sections
++            return resume;
++        }
++
++    }
++}
+Index: src/ru/javawebinar/basejava/model/Resume.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ru/javawebinar/basejava/model/Resume.java	(date 1559944397000)
++++ src/ru/javawebinar/basejava/model/Resume.java	(date 1560114772335)
+@@ -40,10 +40,22 @@
+         return uuid;
+     }
+ 
++    public String getFullName() {
++        return fullName;
++    }
++
++    public Map<ContactType, String> getContacts() {
++        return contacts;
++    }
++
+     public String getContact(ContactType type) {
+         return contacts.get(type);
+     }
+ 
++    public Map<SectionType, Section> getSections() {
++        return sections;
++    }
++
+     public Section getSection(SectionType type) {
+         return sections.get(type);
+     }
+Index: test/ru/javawebinar/basejava/storage/AllStorageTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/ru/javawebinar/basejava/storage/AllStorageTest.java	(date 1559944397000)
++++ test/ru/javawebinar/basejava/storage/AllStorageTest.java	(date 1560115140248)
+@@ -18,6 +18,7 @@
+         ObjectPathStorageTest.class,
+         XmlPathSerializerTest.class,
+         JsonPathSerializerTest.class,
++        DataPathStorageTest.class,
+ })
+ public class AllStorageTest {
+ }
